@@ -1,29 +1,75 @@
-// screens/SummariesScreen.tsx
-import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { router } from 'expo-router';
+import { summaryService } from '../lib/summaryService';
+import { Summary } from '../lib/database';
 import {
   RefreshableScrollView,
   Card,
-  Badge,
-} from '../components/common'; 
+  LoadingScreen,
+  EmptyState,
+} from '../components/common';
+import { SummaryCard } from '../components/summaries/SummaryCard';
 import { Colors } from '../styles/colors';
 import { Typography } from '../styles/typography';
 import { Spacing } from '../styles/spacing';
 
+type SummaryType = 'weekly' | 'monthly' | 'yearly';
+
 export default function SummariesScreen() {
-  const summaryTypes = [
-    { title: 'Weekly Summaries', description: 'Last 4 weeks', count: 0 },
-    { title: 'Monthly Summaries', description: 'Last 6 months', count: 0 },
-    { title: 'Yearly Summaries', description: 'Previous years', count: 0 },
-  ];
-  
-  // A placeholder function for the pull-to-refresh functionality.
-  // You can replace this with your actual data fetching logic.
-  const onRefresh = useCallback(async () => {
-    console.log('Refreshing summaries...');
-    // Simulate a network request
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  const [loading, setLoading] = useState(true);
+  const [weeklySummaries, setWeeklySummaries] = useState<Summary[]>([]);
+  const [monthlySummaries, setMonthlySummaries] = useState<Summary[]>([]);
+  const [yearlySummaries, setYearlySummaries] = useState<Summary[]>([]);
+
+  const mountedRef = useRef(true);
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      await summaryService.checkAndGeneratePendingSummaries();
+      const [weekly, monthly, yearly] = await Promise.all([
+        summaryService.getSummaries('weekly'),
+        summaryService.getSummaries('monthly'),
+        summaryService.getSummaries('yearly'),
+      ]);
+
+      if (!mountedRef.current) return;
+
+      setWeeklySummaries(weekly);
+      setMonthlySummaries(monthly);
+      setYearlySummaries(yearly);
+    } catch (error) {
+      console.error('Failed to load summaries:', error);
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
   }, []);
+
+  const onRefresh = useCallback(async () => {
+    await loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    loadData();
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [loadData]);
+  
+  const handlePressSummary = (type: SummaryType) => {
+    // Implement navigation to a new screen to show the list of summaries
+    // router.push(`/summaries/${type}`);
+    console.log(`Navigating to ${type} summaries...`);
+  };
+
+  const hasAnySummaries = weeklySummaries.length > 0 || monthlySummaries.length > 0 || yearlySummaries.length > 0;
+  
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <RefreshableScrollView
@@ -38,33 +84,34 @@ export default function SummariesScreen() {
         </Text>
       </View>
 
-      {summaryTypes.map((type, index) => (
-        <TouchableOpacity key={index} activeOpacity={0.8}>
-          <Card style={styles.summaryCard}>
-            <View style={styles.cardContent}>
-              <View>
-                <Text style={styles.cardTitle}>{type.title}</Text>
-                <Text style={styles.cardDescription}>{type.description}</Text>
-              </View>
-              <Badge label={String(type.count)} variant="primary" size="medium" />
-            </View>
-            <Text style={styles.arrow}>›</Text>
-          </Card>
-        </TouchableOpacity>
-      ))}
-
-      <Card style={styles.comingSoonCard} noBorder>
-        <Text style={styles.comingSoonTitle}>🤖 Coming Soon</Text>
-        <Text style={styles.comingSoonText}>
-          AI-powered summaries will analyze your daily entries to provide insights about:
-        </Text>
-        <View style={styles.featureList}>
-          <Text style={styles.featureItem}>• Patterns in your productivity and mood</Text>
-          <Text style={styles.featureItem}>• Your biggest accomplishments over time</Text>
-          <Text style={styles.featureItem}>• Key learnings and growth areas</Text>
-          <Text style={styles.featureItem}>• Trends in what you're grateful for</Text>
+      {hasAnySummaries ? (
+        <View>
+          <SummaryCard
+            title="Weekly Summaries"
+            description="View your past week's insights."
+            count={weeklySummaries.length}
+            onPress={() => handlePressSummary('weekly')}
+          />
+          <SummaryCard
+            title="Monthly Summaries"
+            description="View your past month's insights."
+            count={monthlySummaries.length}
+            onPress={() => handlePressSummary('monthly')}
+          />
+          <SummaryCard
+            title="Yearly Summaries"
+            description="View your past year's insights."
+            count={yearlySummaries.length}
+            onPress={() => handlePressSummary('yearly')}
+          />
         </View>
-      </Card>
+      ) : (
+        <EmptyState
+          icon="📝"
+          title="No summaries yet"
+          message="Keep logging your daily entries to generate your first summary!"
+        />
+      )}
     </RefreshableScrollView>
   );
 }
@@ -73,80 +120,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
+  } as ViewStyle,
   scrollContent: {
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xxxl,
-  },
+  } as ViewStyle,
   header: {
     paddingVertical: Spacing.xxxl,
     alignItems: 'center',
-  },
+  } as ViewStyle,
   headerTitle: {
     fontSize: Typography.sizes.xxxl,
     fontWeight: Typography.weights.bold,
     color: Colors.text,
     marginBottom: Spacing.sm,
-  },
+  } as TextStyle,
   headerSubtitle: {
     fontSize: Typography.sizes.md,
     color: Colors.textSecondary,
     textAlign: 'center',
-  },
-  summaryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.lg,
-    // The Card component handles background, border, and padding.
-    // We add flex direction here to align the arrow.
-  },
-  cardContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardTitle: {
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.text,
-    marginBottom: Spacing.xs,
-  },
-  cardDescription: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-  },
-  arrow: {
-    fontSize: 24,
-    color: Colors.textMuted,
-    marginLeft: Spacing.md,
-  },
-  comingSoonCard: {
-    // A custom style for this specific card, demonstrating flexibility.
-    backgroundColor: '#f0f8ff', // A light blue, could be added to Colors as `infoLight`
-    padding: Spacing.xl,
-  },
-  comingSoonTitle: {
-    fontSize: Typography.sizes.xl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.text,
-    marginBottom: Spacing.md,
-    textAlign: 'center',
-  },
-  comingSoonText: {
-    fontSize: Typography.sizes.md,
-    color: Colors.text,
-    marginBottom: Spacing.lg,
-    lineHeight: Typography.sizes.md * Typography.lineHeights.normal,
-  },
-  featureList: {
-    marginLeft: Spacing.sm,
-  },
-  featureItem: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.sm,
-    lineHeight: Typography.sizes.sm * Typography.lineHeights.relaxed,
-  },
+  } as TextStyle,
 });

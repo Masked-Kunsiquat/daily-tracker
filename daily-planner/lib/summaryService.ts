@@ -1,4 +1,3 @@
-// lib/summaryService.ts
 import { databaseService, Summary } from './database';
 import { aiService } from './aiService';
 
@@ -236,6 +235,11 @@ export class SummaryService {
     const monthStart = new Date(date);
     monthStart.setDate(1);
     return monthStart.toISOString().split('T')[0];
+  }
+  
+  // New method to fetch summaries by type
+  async getSummaries(type: 'weekly' | 'monthly' | 'yearly'): Promise<Summary[]> {
+    return databaseService.getSummaries(type);
   }
 
   async getSummaryStats(): Promise<{
