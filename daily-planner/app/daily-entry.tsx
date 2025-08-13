@@ -1,145 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { databaseService, DailyEntry } from '../lib/database';
 
-// Import our reusable components
+// Import reusable components
 import {
   RefreshableScrollView,
   LoadingScreen,
   Card,
   TextInput,
   Button,
-  IconButton,
-  Separator,
 } from '../components/common';
+
+// Import new modular components
+import { DynamicListSection } from '../components/daily-entry/DynamicListSection';
+import { RatingsSection } from '../components/daily-entry/RatingsSection';
+
 import { Colors } from '../styles/colors';
 import { Typography } from '../styles/typography';
 import { Spacing } from '../styles/spacing';
-
-// TYPES
-type RatingCategory = 'productivity' | 'mood' | 'energy';
-
-// =================================================================
-// SUB-COMPONENTS
-// =================================================================
-
-// Props for the dynamic list section
-interface DynamicListSectionProps {
-  title: string;
-  items: string[];
-  setItems: React.Dispatch<React.SetStateAction<string[]>>;
-  placeholder: string;
-}
-
-/**
- * A reusable section for lists where users can add or remove text inputs.
- */
-const DynamicListSection: React.FC<DynamicListSectionProps> = ({
-  title,
-  items,
-  setItems,
-  placeholder,
-}) => {
-  const handleAddItem = () => {
-    setItems([...items, '']);
-  };
-
-  const handleUpdateItem = (index: number, value: string) => {
-    const newItems = [...items];
-    newItems[index] = value;
-    setItems(newItems);
-  };
-
-  const handleRemoveItem = (index: number) => {
-    if (items.length > 1) {
-      const newItems = items.filter((_, i) => i !== index);
-      setItems(newItems);
-    }
-  };
-
-  return (
-    <Card style={styles.card}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {items.map((item, index) => (
-        <View key={index} style={styles.listItemContainer}>
-          <TextInput
-            style={styles.listInput}
-            value={item}
-            onChangeText={(text) => handleUpdateItem(index, text)}
-            placeholder={placeholder}
-            multiline
-          />
-          {items.length > 1 && (
-            <IconButton
-              icon="✕"
-              onPress={() => handleRemoveItem(index)}
-              color={Colors.danger}
-              style={styles.removeButton}
-            />
-          )}
-        </View>
-      ))}
-      <Button
-        title="+ Add another"
-        variant="ghost"
-        onPress={handleAddItem}
-        style={styles.addButton}
-      />
-    </Card>
-  );
-};
-
-// Props for the ratings section
-interface RatingsSectionProps {
-  ratings: Record<RatingCategory, number>;
-  setRatings: React.Dispatch<React.SetStateAction<Record<RatingCategory, number>>>;
-}
-
-/**
- * A section for users to rate different categories using stars.
- */
-const RatingsSection: React.FC<RatingsSectionProps> = ({ ratings, setRatings }) => {
-  const renderStarRating = (category: RatingCategory) => (
-    <View style={styles.starContainer}>
-      {[1, 2, 3, 4, 5].map((star) => (
-        <TouchableOpacity
-          key={star}
-          onPress={() => setRatings({ ...ratings, [category]: star })}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.star, star <= ratings[category] ? styles.starFilled : {}]}>
-            ⭐
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
-
-  return (
-    <Card style={styles.card}>
-      <Text style={styles.sectionTitle}>Daily Ratings</Text>
-      <View style={styles.ratingItem}>
-        <Text style={styles.ratingLabel}>Productivity</Text>
-        {renderStarRating('productivity')}
-      </View>
-      <Separator />
-      <View style={styles.ratingItem}>
-        <Text style={styles.ratingLabel}>Mood</Text>
-        {renderStarRating('mood')}
-      </View>
-      <Separator />
-      <View style={styles.ratingItem}>
-        <Text style={styles.ratingLabel}>Energy</Text>
-        {renderStarRating('energy')}
-      </View>
-    </Card>
-  );
-};
-
-// =================================================================
-// MAIN SCREEN COMPONENT
-// =================================================================
 
 export default function DailyEntryScreen() {
   const { date: paramDate } = useLocalSearchParams();
@@ -152,7 +31,7 @@ export default function DailyEntryScreen() {
   const [accomplishments, setAccomplishments] = useState(['']);
   const [thingsLearned, setThingsLearned] = useState(['']);
   const [thingsGrateful, setThingsGrateful] = useState(['']);
-  const [ratings, setRatings] = useState<Record<RatingCategory, number>>({
+  const [ratings, setRatings] = useState({
     productivity: 3,
     mood: 3,
     energy: 3,
@@ -276,10 +155,6 @@ export default function DailyEntryScreen() {
   );
 }
 
-// =================================================================
-// STYLESHEET
-// =================================================================
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -298,53 +173,9 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: Spacing.lg,
   },
-  sectionTitle: {
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.bold,
-    color: Colors.text,
-    marginBottom: Spacing.lg,
-  },
   textArea: {
     minHeight: 120,
     textAlignVertical: 'top',
-  },
-  listItemContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.md,
-  },
-  listInput: {
-    flex: 1,
-  },
-  removeButton: {
-    marginLeft: Spacing.sm,
-    marginTop: Spacing.sm, // Align with text input padding
-  },
-  addButton: {
-    alignSelf: 'flex-start',
-    marginTop: Spacing.xs,
-  },
-  ratingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-  },
-  ratingLabel: {
-    fontSize: Typography.sizes.md,
-    color: Colors.text,
-    flex: 1,
-  },
-  starContainer: {
-    flexDirection: 'row',
-  },
-  star: {
-    fontSize: 28,
-    marginHorizontal: Spacing.xs,
-    opacity: 0.3,
-  },
-  starFilled: {
-    opacity: 1,
   },
   footer: {
     padding: Spacing.lg,
@@ -353,6 +184,6 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
   },
   saveButton: {
-    backgroundColor: Colors.success, // Custom color for save action
+    backgroundColor: Colors.success,
   },
 });
