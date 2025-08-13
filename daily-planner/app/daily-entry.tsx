@@ -1,38 +1,165 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  Alert,
-  ActivityIndicator 
-} from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { databaseService, DailyEntry } from '../lib/database';
+
+// Import our reusable components
+import {
+  RefreshableScrollView,
+  LoadingScreen,
+  Card,
+  TextInput,
+  Button,
+  IconButton,
+  Separator,
+} from '../components/common';
+import { Colors } from '../styles/colors';
+import { Typography } from '../styles/typography';
+import { Spacing } from '../styles/spacing';
+
+// TYPES
+type RatingCategory = 'productivity' | 'mood' | 'energy';
+
+// =================================================================
+// SUB-COMPONENTS
+// =================================================================
+
+// Props for the dynamic list section
+interface DynamicListSectionProps {
+  title: string;
+  items: string[];
+  setItems: React.Dispatch<React.SetStateAction<string[]>>;
+  placeholder: string;
+}
+
+/**
+ * A reusable section for lists where users can add or remove text inputs.
+ */
+const DynamicListSection: React.FC<DynamicListSectionProps> = ({
+  title,
+  items,
+  setItems,
+  placeholder,
+}) => {
+  const handleAddItem = () => {
+    setItems([...items, '']);
+  };
+
+  const handleUpdateItem = (index: number, value: string) => {
+    const newItems = [...items];
+    newItems[index] = value;
+    setItems(newItems);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    if (items.length > 1) {
+      const newItems = items.filter((_, i) => i !== index);
+      setItems(newItems);
+    }
+  };
+
+  return (
+    <Card style={styles.card}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {items.map((item, index) => (
+        <View key={index} style={styles.listItemContainer}>
+          <TextInput
+            style={styles.listInput}
+            value={item}
+            onChangeText={(text) => handleUpdateItem(index, text)}
+            placeholder={placeholder}
+            multiline
+          />
+          {items.length > 1 && (
+            <IconButton
+              icon="✕"
+              onPress={() => handleRemoveItem(index)}
+              color={Colors.danger}
+              style={styles.removeButton}
+            />
+          )}
+        </View>
+      ))}
+      <Button
+        title="+ Add another"
+        variant="ghost"
+        onPress={handleAddItem}
+        style={styles.addButton}
+      />
+    </Card>
+  );
+};
+
+// Props for the ratings section
+interface RatingsSectionProps {
+  ratings: Record<RatingCategory, number>;
+  setRatings: React.Dispatch<React.SetStateAction<Record<RatingCategory, number>>>;
+}
+
+/**
+ * A section for users to rate different categories using stars.
+ */
+const RatingsSection: React.FC<RatingsSectionProps> = ({ ratings, setRatings }) => {
+  const renderStarRating = (category: RatingCategory) => (
+    <View style={styles.starContainer}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <TouchableOpacity
+          key={star}
+          onPress={() => setRatings({ ...ratings, [category]: star })}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.star, star <= ratings[category] ? styles.starFilled : {}]}>
+            ⭐
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  return (
+    <Card style={styles.card}>
+      <Text style={styles.sectionTitle}>Daily Ratings</Text>
+      <View style={styles.ratingItem}>
+        <Text style={styles.ratingLabel}>Productivity</Text>
+        {renderStarRating('productivity')}
+      </View>
+      <Separator />
+      <View style={styles.ratingItem}>
+        <Text style={styles.ratingLabel}>Mood</Text>
+        {renderStarRating('mood')}
+      </View>
+      <Separator />
+      <View style={styles.ratingItem}>
+        <Text style={styles.ratingLabel}>Energy</Text>
+        {renderStarRating('energy')}
+      </View>
+    </Card>
+  );
+};
+
+// =================================================================
+// MAIN SCREEN COMPONENT
+// =================================================================
 
 export default function DailyEntryScreen() {
   const { date: paramDate } = useLocalSearchParams();
   const entryDate = (paramDate as string) || new Date().toISOString().split('T')[0];
   
+  // State
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dailyText, setDailyText] = useState('');
   const [accomplishments, setAccomplishments] = useState(['']);
   const [thingsLearned, setThingsLearned] = useState(['']);
   const [thingsGrateful, setThingsGrateful] = useState(['']);
-  const [ratings, setRatings] = useState({
+  const [ratings, setRatings] = useState<Record<RatingCategory, number>>({
     productivity: 3,
     mood: 3,
     energy: 3,
   });
 
-  useEffect(() => {
-    loadExistingEntry();
-  }, [entryDate]);
-
-  const loadExistingEntry = async () => {
+  // Data loading
+  const loadExistingEntry = useCallback(async () => {
     try {
       await databaseService.initialize();
       const existingEntry = await databaseService.getDailyEntry(entryDate);
@@ -50,93 +177,15 @@ export default function DailyEntryScreen() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const addListItem = (list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>) => {
-    setList([...list, '']);
-  };
-
-  const updateListItem = (
-    list: string[], 
-    setList: React.Dispatch<React.SetStateAction<string[]>>, 
-    index: number, 
-    value: string
-  ) => {
-    const newList = [...list];
-    newList[index] = value;
-    setList(newList);
-  };
-
-  const removeListItem = (
-    list: string[], 
-    setList: React.Dispatch<React.SetStateAction<string[]>>, 
-    index: number
-  ) => {
-    if (list.length > 1) {
-      const newList = list.filter((_, i) => i !== index);
-      setList(newList);
-    }
-  };
-
-  const renderStarRating = (category: keyof typeof ratings) => {
-    return (
-      <View style={styles.starContainer}>
-        {[1, 2, 3, 4, 5].map((star) => (
-          <TouchableOpacity
-            key={star}
-            onPress={() => setRatings({ ...ratings, [category]: star })}
-          >
-            <Text style={[
-              styles.star,
-              star <= ratings[category] ? styles.starFilled : styles.starEmpty
-            ]}>
-              ⭐
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
-
-  const renderListSection = (
-    title: string,
-    list: string[],
-    setList: React.Dispatch<React.SetStateAction<string[]>>,
-    placeholder: string
-  ) => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {list.map((item, index) => (
-        <View key={index} style={styles.listItemContainer}>
-          <TextInput
-            style={styles.listInput}
-            value={item}
-            onChangeText={(text) => updateListItem(list, setList, index, text)}
-            placeholder={placeholder}
-            multiline
-          />
-          {list.length > 1 && (
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => removeListItem(list, setList, index)}
-            >
-              <Text style={styles.removeButtonText}>✕</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      ))}
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => addListItem(list, setList)}
-      >
-        <Text style={styles.addButtonText}>+ Add another</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
+  }, [entryDate]);
+  
+  useEffect(() => {
+    loadExistingEntry();
+  }, [loadExistingEntry]);
+  
+  // Data saving
   const saveEntry = async () => {
     setSaving(true);
-    
     try {
       const entry: DailyEntry = {
         date: entryDate,
@@ -149,11 +198,9 @@ export default function DailyEntryScreen() {
 
       await databaseService.saveDailyEntry(entry);
       
-      Alert.alert(
-        'Entry Saved!',
-        'Your daily entry has been saved successfully.',
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
+      Alert.alert('Entry Saved!', 'Your daily entry has been saved successfully.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
     } catch (error) {
       console.error('Error saving entry:', error);
       Alert.alert('Error', 'Failed to save entry. Please try again.');
@@ -162,214 +209,150 @@ export default function DailyEntryScreen() {
     }
   };
 
+  // Render Logic
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading entry...</Text>
-      </View>
-    );
+    return <LoadingScreen message="Loading entry..." />;
   }
 
   const formattedDate = new Date(entryDate).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
+    <>
+      <RefreshableScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        onRefresh={loadExistingEntry}
+      >
         <Text style={styles.dateHeader}>{formattedDate}</Text>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Daily Reflection</Text>
-        <TextInput
-          style={styles.textArea}
-          value={dailyText}
-          onChangeText={setDailyText}
-          placeholder="How was your day? What happened? How are you feeling?"
-          multiline
-          numberOfLines={6}
-          textAlignVertical="top"
+        <Card style={styles.card}>
+          <TextInput
+            label="Daily Reflection"
+            value={dailyText}
+            onChangeText={setDailyText}
+            placeholder="How was your day? What happened?"
+            multiline
+            numberOfLines={6}
+            style={styles.textArea}
+          />
+        </Card>
+
+        <DynamicListSection
+          title="Accomplishments"
+          items={accomplishments}
+          setItems={setAccomplishments}
+          placeholder="e.g., Finished a project"
+        />
+
+        <DynamicListSection
+          title="Things I Learned"
+          items={thingsLearned}
+          setItems={setThingsLearned}
+          placeholder="e.g., A new shortcut in my code editor"
+        />
+
+        <DynamicListSection
+          title="Things I'm Grateful For"
+          items={thingsGrateful}
+          setItems={setThingsGrateful}
+          placeholder="e.g., A sunny afternoon"
+        />
+        
+        <RatingsSection ratings={ratings} setRatings={setRatings} />
+
+      </RefreshableScrollView>
+      <View style={styles.footer}>
+        <Button
+          title="Save Entry"
+          onPress={saveEntry}
+          loading={saving}
+          fullWidth
+          style={styles.saveButton}
         />
       </View>
-
-      {renderListSection(
-        'Accomplishments',
-        accomplishments,
-        setAccomplishments,
-        'What did you accomplish today?'
-      )}
-
-      {renderListSection(
-        'Things I Learned',
-        thingsLearned,
-        setThingsLearned,
-        'What did you learn today?'
-      )}
-
-      {renderListSection(
-        'Things I\'m Grateful For',
-        thingsGrateful,
-        setThingsGrateful,
-        'What are you grateful for today?'
-      )}
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Daily Ratings</Text>
-        
-        <View style={styles.ratingItem}>
-          <Text style={styles.ratingLabel}>Productivity</Text>
-          {renderStarRating('productivity')}
-        </View>
-        
-        <View style={styles.ratingItem}>
-          <Text style={styles.ratingLabel}>Mood</Text>
-          {renderStarRating('mood')}
-        </View>
-        
-        <View style={styles.ratingItem}>
-          <Text style={styles.ratingLabel}>Energy</Text>
-          {renderStarRating('energy')}
-        </View>
-      </View>
-
-      <TouchableOpacity 
-        style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
-        onPress={saveEntry}
-        disabled={saving}
-      >
-        {saving ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text style={styles.saveButtonText}>Save Entry</Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+    </>
   );
 }
+
+// =================================================================
+// STYLESHEET
+// =================================================================
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
-  },
-  header: {
-    padding: 20,
-    paddingBottom: 10,
-    backgroundColor: '#f8f9fa',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+  scrollContent: {
+    padding: Spacing.lg,
   },
   dateHeader: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: Typography.sizes.lg,
+    fontWeight: Typography.weights.semibold,
+    color: Colors.textSecondary,
     textAlign: 'center',
+    marginBottom: Spacing.lg,
   },
-  section: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+  card: {
+    marginBottom: Spacing.lg,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
+    fontSize: Typography.sizes.lg,
+    fontWeight: Typography.weights.bold,
+    color: Colors.text,
+    marginBottom: Spacing.lg,
   },
   textArea: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
     minHeight: 120,
+    textAlignVertical: 'top',
   },
   listItemContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 10,
+    marginBottom: Spacing.md,
   },
   listInput: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 44,
   },
   removeButton: {
-    marginLeft: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
-  removeButtonText: {
-    color: '#ff3b30',
-    fontSize: 16,
-    fontWeight: 'bold',
+    marginLeft: Spacing.sm,
+    marginTop: Spacing.sm, // Align with text input padding
   },
   addButton: {
-    marginTop: 10,
-    padding: 10,
     alignSelf: 'flex-start',
-  },
-  addButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
+    marginTop: Spacing.xs,
   },
   ratingItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    paddingVertical: Spacing.md,
   },
   ratingLabel: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: Typography.sizes.md,
+    color: Colors.text,
     flex: 1,
   },
   starContainer: {
     flexDirection: 'row',
   },
   star: {
-    fontSize: 24,
-    marginHorizontal: 2,
+    fontSize: 28,
+    marginHorizontal: Spacing.xs,
+    opacity: 0.3,
   },
   starFilled: {
     opacity: 1,
   },
-  starEmpty: {
-    opacity: 0.3,
+  footer: {
+    padding: Spacing.lg,
+    backgroundColor: Colors.background,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
   saveButton: {
-    backgroundColor: '#34C759',
-    margin: 20,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#a0a0a0',
-  },
-  saveButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
+    backgroundColor: Colors.success, // Custom color for save action
   },
 });
