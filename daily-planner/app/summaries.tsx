@@ -1,5 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+// screens/SummariesScreen.tsx
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  RefreshableScrollView,
+  Card,
+  Badge,
+} from '../components/common'; 
+import { Colors } from '../styles/colors';
+import { Typography } from '../styles/typography';
+import { Spacing } from '../styles/spacing';
 
 export default function SummariesScreen() {
   const summaryTypes = [
@@ -7,9 +16,21 @@ export default function SummariesScreen() {
     { title: 'Monthly Summaries', description: 'Last 6 months', count: 0 },
     { title: 'Yearly Summaries', description: 'Previous years', count: 0 },
   ];
+  
+  // A placeholder function for the pull-to-refresh functionality.
+  // You can replace this with your actual data fetching logic.
+  const onRefresh = useCallback(async () => {
+    console.log('Refreshing summaries...');
+    // Simulate a network request
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }, []);
 
   return (
-    <ScrollView style={styles.container}>
+    <RefreshableScrollView
+      style={styles.container}
+      onRefresh={onRefresh}
+      contentContainerStyle={styles.scrollContent}
+    >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your Progress</Text>
         <Text style={styles.headerSubtitle}>
@@ -18,21 +39,21 @@ export default function SummariesScreen() {
       </View>
 
       {summaryTypes.map((type, index) => (
-        <TouchableOpacity key={index} style={styles.summaryCard}>
-          <View style={styles.cardContent}>
-            <View>
-              <Text style={styles.cardTitle}>{type.title}</Text>
-              <Text style={styles.cardDescription}>{type.description}</Text>
+        <TouchableOpacity key={index} activeOpacity={0.8}>
+          <Card style={styles.summaryCard}>
+            <View style={styles.cardContent}>
+              <View>
+                <Text style={styles.cardTitle}>{type.title}</Text>
+                <Text style={styles.cardDescription}>{type.description}</Text>
+              </View>
+              <Badge label={String(type.count)} variant="primary" size="medium" />
             </View>
-            <View style={styles.countBadge}>
-              <Text style={styles.countText}>{type.count}</Text>
-            </View>
-          </View>
-          <Text style={styles.arrow}>›</Text>
+            <Text style={styles.arrow}>›</Text>
+          </Card>
         </TouchableOpacity>
       ))}
 
-      <View style={styles.comingSoon}>
+      <Card style={styles.comingSoonCard} noBorder>
         <Text style={styles.comingSoonTitle}>🤖 Coming Soon</Text>
         <Text style={styles.comingSoonText}>
           AI-powered summaries will analyze your daily entries to provide insights about:
@@ -43,42 +64,42 @@ export default function SummariesScreen() {
           <Text style={styles.featureItem}>• Key learnings and growth areas</Text>
           <Text style={styles.featureItem}>• Trends in what you're grateful for</Text>
         </View>
-      </View>
-    </ScrollView>
+      </Card>
+    </RefreshableScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.xxxl,
   },
   header: {
-    padding: 20,
-    paddingBottom: 30,
+    paddingVertical: Spacing.xxxl,
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
+    fontSize: Typography.sizes.xxxl,
+    fontWeight: Typography.weights.bold,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
   },
   headerSubtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: Typography.sizes.md,
+    color: Colors.textSecondary,
     textAlign: 'center',
   },
   summaryCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    marginHorizontal: 20,
-    marginBottom: 15,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.lg,
+    // The Card component handles background, border, and padding.
+    // We add flex direction here to align the arrow.
   },
   cardContent: {
     flex: 1,
@@ -87,61 +108,45 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: Typography.sizes.lg,
+    fontWeight: Typography.weights.semibold,
+    color: Colors.text,
+    marginBottom: Spacing.xs,
   },
   cardDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  countBadge: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    minWidth: 24,
-    alignItems: 'center',
-  },
-  countText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: Typography.sizes.sm,
+    color: Colors.textSecondary,
   },
   arrow: {
     fontSize: 24,
-    color: '#ccc',
-    marginLeft: 10,
+    color: Colors.textMuted,
+    marginLeft: Spacing.md,
   },
-  comingSoon: {
-    margin: 20,
-    padding: 20,
-    backgroundColor: '#f0f8ff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#cce7ff',
+  comingSoonCard: {
+    // A custom style for this specific card, demonstrating flexibility.
+    backgroundColor: '#f0f8ff', // A light blue, could be added to Colors as `infoLight`
+    padding: Spacing.xl,
   },
   comingSoonTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
+    fontSize: Typography.sizes.xl,
+    fontWeight: Typography.weights.bold,
+    color: Colors.text,
+    marginBottom: Spacing.md,
     textAlign: 'center',
   },
   comingSoonText: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 15,
-    lineHeight: 24,
+    fontSize: Typography.sizes.md,
+    color: Colors.text,
+    marginBottom: Spacing.lg,
+    lineHeight: Typography.sizes.md * Typography.lineHeights.normal,
   },
   featureList: {
-    marginLeft: 10,
+    marginLeft: Spacing.sm,
   },
   featureItem: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-    lineHeight: 20,
+    fontSize: Typography.sizes.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+    lineHeight: Typography.sizes.sm * Typography.lineHeights.relaxed,
   },
 });
