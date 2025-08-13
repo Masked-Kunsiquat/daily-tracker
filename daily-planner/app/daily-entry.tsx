@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -6,24 +6,18 @@ import {
   StyleSheet, 
   ScrollView, 
   TouchableOpacity, 
-  Alert 
+  Alert,
+  ActivityIndicator 
 } from 'react-native';
-import { router } from 'expo-router';
-
-interface DailyEntry {
-  date: string;
-  daily_text: string;
-  accomplishments: string[];
-  things_learned: string[];
-  things_grateful: string[];
-  ratings: {
-    productivity: number;
-    mood: number;
-    energy: number;
-  };
-}
+import { router, useLocalSearchParams } from 'expo-router';
+import { databaseService, DailyEntry } from '../lib/database';
 
 export default function DailyEntryScreen() {
+  const { date: paramDate } = useLocalSearchParams();
+  const entryDate = (paramDate as string) || new Date().toISOString().split('T')[0];
+  
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [dailyText, setDailyText] = useState('');
   const [accomplishments, setAccomplishments] = useState(['']);
   const [thingsLearned, setThingsLearned] = useState(['']);
@@ -33,6 +27,30 @@ export default function DailyEntryScreen() {
     mood: 3,
     energy: 3,
   });
+
+  useEffect(() => {
+    loadExistingEntry();
+  }, [entryDate]);
+
+  const loadExistingEntry = async () => {
+    try {
+      await databaseService.initialize();
+      const existingEntry = await databaseService.getDailyEntry(entryDate);
+      
+      if (existingEntry) {
+        setDailyText(existingEntry.daily_text);
+        setAccomplishments(existingEntry.accomplishments.length > 0 ? existingEntry.accomplishments : ['']);
+        setThingsLearned(existingEntry.things_learned.length > 0 ? existingEntry.things_learned : ['']);
+        setThingsGrateful(existingEntry.things_grateful.length > 0 ? existingEntry.things_grateful : ['']);
+        setRatings(existingEntry.ratings);
+      }
+    } catch (error) {
+      console.error('Error loading existing entry:', error);
+      Alert.alert('Error', 'Failed to load existing entry');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addListItem = (list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>) => {
     setList([...list, '']);
@@ -116,28 +134,56 @@ export default function DailyEntryScreen() {
     </View>
   );
 
-  const saveEntry = () => {
-    const entry: DailyEntry = {
-      date: new Date().toISOString().split('T')[0],
-      daily_text: dailyText,
-      accomplishments: accomplishments.filter(item => item.trim() !== ''),
-      things_learned: thingsLearned.filter(item => item.trim() !== ''),
-      things_grateful: thingsGrateful.filter(item => item.trim() !== ''),
-      ratings,
-    };
-
-    // TODO: Save to database
-    console.log('Saving entry:', entry);
+  const saveEntry = async () => {
+    setSaving(true);
     
-    Alert.alert(
-      'Entry Saved!',
-      'Your daily entry has been saved successfully.',
-      [{ text: 'OK', onPress: () => router.back() }]
-    );
+    try {
+      const entry: DailyEntry = {
+        date: entryDate,
+        daily_text: dailyText,
+        accomplishments: accomplishments.filter(item => item.trim() !== ''),
+        things_learned: thingsLearned.filter(item => item.trim() !== ''),
+        things_grateful: thingsGrateful.filter(item => item.trim() !== ''),
+        ratings,
+      };
+
+      await databaseService.saveDailyEntry(entry);
+      
+      Alert.alert(
+        'Entry Saved!',
+        'Your daily entry has been saved successfully.',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+    } catch (error) {
+      console.error('Error saving entry:', error);
+      Alert.alert('Error', 'Failed to save entry. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading entry...</Text>
+      </View>
+    );
+  }
+
+  const formattedDate = new Date(entryDate).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 
   return (
     <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.dateHeader}>{formattedDate}</Text>
+      </View>
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Daily Reflection</Text>
         <TextInput
@@ -191,8 +237,16 @@ export default function DailyEntryScreen() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={saveEntry}>
-        <Text style={styles.saveButtonText}>Save Entry</Text>
+      <TouchableOpacity 
+        style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
+        onPress={saveEntry}
+        disabled={saving}
+      >
+        {saving ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text style={styles.saveButtonText}>Save Entry</Text>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );
@@ -202,6 +256,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  header: {
+    padding: 20,
+    paddingBottom: 10,
+    backgroundColor: '#f8f9fa',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  dateHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
   },
   section: {
     padding: 20,
@@ -285,6 +363,9 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#a0a0a0',
   },
   saveButtonText: {
     color: 'white',
