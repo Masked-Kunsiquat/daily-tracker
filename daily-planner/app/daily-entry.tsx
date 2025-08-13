@@ -45,6 +45,7 @@ export default function DailyEntryScreen() {
       
       if (existingEntry) {
         setDailyText(existingEntry.daily_text);
+        // Ensure lists are not empty for the UI
         setAccomplishments(existingEntry.accomplishments.length > 0 ? existingEntry.accomplishments : ['']);
         setThingsLearned(existingEntry.things_learned.length > 0 ? existingEntry.things_learned : ['']);
         setThingsGrateful(existingEntry.things_grateful.length > 0 ? existingEntry.things_grateful : ['']);

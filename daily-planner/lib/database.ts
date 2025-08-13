@@ -1,4 +1,3 @@
-// lib/database.ts
 import * as SQLite from 'expo-sqlite';
 
 export interface DailyEntry {
@@ -51,14 +50,22 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT UNIQUE NOT NULL,
         daily_text TEXT,
-        accomplishments TEXT,
-        things_learned TEXT,
-        things_grateful TEXT,
         productivity_rating INTEGER,
         mood_rating INTEGER,
         energy_rating INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // New table for accomplishments, learnings, and gratitude
+    await this.db.execAsync(`
+      CREATE TABLE IF NOT EXISTS daily_entry_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        entry_id INTEGER NOT NULL,
+        type TEXT NOT NULL,
+        content TEXT NOT NULL,
+        FOREIGN KEY(entry_id) REFERENCES daily_entries(id) ON DELETE CASCADE
       );
     `);
 
@@ -78,6 +85,7 @@ class DatabaseService {
     // Create indexes for better performance
     await this.db.execAsync(`
       CREATE INDEX IF NOT EXISTS idx_daily_entries_date ON daily_entries(date);
+      CREATE INDEX IF NOT EXISTS idx_daily_entry_items_entry_id ON daily_entry_items(entry_id);
       CREATE INDEX IF NOT EXISTS idx_summaries_type_date ON summaries(type, start_date, end_date);
     `);
   }
@@ -85,23 +93,44 @@ class DatabaseService {
   async saveDailyEntry(entry: DailyEntry): Promise<number> {
     if (!this.db) throw new Error('Database not initialized');
 
+    // Insert or replace the main daily_entries row
     const result = await this.db.runAsync(`
       INSERT OR REPLACE INTO daily_entries (
-        date, daily_text, accomplishments, things_learned, things_grateful,
-        productivity_rating, mood_rating, energy_rating, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        date, daily_text, productivity_rating, mood_rating, energy_rating, updated_at
+      ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `, [
       entry.date,
       entry.daily_text,
-      JSON.stringify(entry.accomplishments),
-      JSON.stringify(entry.things_learned),
-      JSON.stringify(entry.things_grateful),
       entry.ratings.productivity,
       entry.ratings.mood,
       entry.ratings.energy
     ]);
 
-    return result.lastInsertRowId;
+    const entryId = result.lastInsertRowId;
+    
+    if (entryId) {
+      // Clear old items for this entry
+      await this.db.runAsync('DELETE FROM daily_entry_items WHERE entry_id = ?', [entryId]);
+
+      // Save new list items
+      const saveItems = async (items: string[], type: string) => {
+        for (const item of items) {
+          if (item.trim()) {
+            await this.db!.runAsync('INSERT INTO daily_entry_items (entry_id, type, content) VALUES (?, ?, ?)', [
+              entryId,
+              type,
+              item
+            ]);
+          }
+        }
+      };
+
+      await saveItems(entry.accomplishments, 'accomplishment');
+      await saveItems(entry.things_learned, 'learning');
+      await saveItems(entry.things_grateful, 'grateful');
+    }
+
+    return entryId;
   }
 
   async getDailyEntry(date: string): Promise<DailyEntry | null> {
@@ -113,7 +142,9 @@ class DatabaseService {
 
     if (!result) return null;
 
-    return this.transformRowToDailyEntry(result as any);
+    const entry = this.transformRowToDailyEntry(result as any);
+    await this.fetchEntryItems(entry);
+    return entry;
   }
 
   async getDailyEntries(startDate: string, endDate: string): Promise<DailyEntry[]> {
@@ -125,7 +156,14 @@ class DatabaseService {
       ORDER BY date ASC
     `, [startDate, endDate]);
 
-    return results.map(row => this.transformRowToDailyEntry(row as any));
+    const entries = results.map(row => this.transformRowToDailyEntry(row as any));
+    
+    // Fetch items for each entry
+    for (const entry of entries) {
+      await this.fetchEntryItems(entry);
+    }
+
+    return entries;
   }
 
   async getRecentEntries(limit: number = 7): Promise<DailyEntry[]> {
@@ -137,7 +175,26 @@ class DatabaseService {
       LIMIT ?
     `, [limit]);
 
-    return results.map(row => this.transformRowToDailyEntry(row as any));
+    const entries = results.map(row => this.transformRowToDailyEntry(row as any));
+    
+    // Fetch items for each entry
+    for (const entry of entries) {
+      await this.fetchEntryItems(entry);
+    }
+
+    return entries;
+  }
+
+  private async fetchEntryItems(entry: DailyEntry): Promise<void> {
+    if (!this.db || !entry.id) return;
+    
+    const items = await this.db.getAllAsync(`
+      SELECT type, content FROM daily_entry_items WHERE entry_id = ?
+    `, [entry.id]);
+
+    entry.accomplishments = items.filter(i => (i as any).type === 'accomplishment').map(i => (i as any).content);
+    entry.things_learned = items.filter(i => (i as any).type === 'learning').map(i => (i as any).content);
+    entry.things_grateful = items.filter(i => (i as any).type === 'grateful').map(i => (i as any).content);
   }
 
   async saveSummary(summary: Summary): Promise<number> {
@@ -202,19 +259,19 @@ class DatabaseService {
 
   private transformRowToDailyEntry(row: any): DailyEntry {
     return {
-      id: row.id,
-      date: row.date,
-      daily_text: row.daily_text || '',
-      accomplishments: JSON.parse(row.accomplishments || '[]'),
-      things_learned: JSON.parse(row.things_learned || '[]'),
-      things_grateful: JSON.parse(row.things_grateful || '[]'),
+      id: row?.id,
+      date: row?.date || '',
+      daily_text: row?.daily_text || '',
+      accomplishments: [],
+      things_learned: [],
+      things_grateful: [],
       ratings: {
-        productivity: row.productivity_rating || 3,
-        mood: row.mood_rating || 3,
-        energy: row.energy_rating || 3,
+        productivity: row?.productivity_rating || 3,
+        mood: row?.mood_rating || 3,
+        energy: row?.energy_rating || 3,
       },
-      created_at: row.created_at,
-      updated_at: row.updated_at,
+      created_at: row?.created_at,
+      updated_at: row?.updated_at,
     };
   }
 
@@ -233,6 +290,7 @@ class DatabaseService {
   async deleteEntry(id: number): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
     
+    // Deleting the entry will also delete its items due to ON DELETE CASCADE
     await this.db.runAsync('DELETE FROM daily_entries WHERE id = ?', [id]);
   }
 

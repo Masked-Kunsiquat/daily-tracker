@@ -10,6 +10,7 @@ export const getEntryPreview = (entry: DailyEntry): string => {
     return text.length > 100 ? `${text.substring(0, 100)}...` : text;
   }
   
+  // These arrays are now directly populated by the database service
   const accomplishments = entry.accomplishments?.length ?? 0;
   const learned = entry.things_learned?.length ?? 0;
   const grateful = entry.things_grateful?.length ?? 0;
