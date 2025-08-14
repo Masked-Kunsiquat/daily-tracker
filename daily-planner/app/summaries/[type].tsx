@@ -55,17 +55,9 @@ export default function SummaryTypeScreen() {
   
   const mountedRef = useRef(true);
 
-  // Validate summary type
-  if (!summaryType || !config) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Invalid summary type: {paramType}</Text>
-        <Button title="Go Back" onPress={() => router.back()} />
-      </View>
-    );
-  }
-
   const loadSummaries = useCallback(async () => {
+    if (!summaryType) return;
+    
     try {
       setLoading(true);
       
@@ -95,6 +87,8 @@ export default function SummaryTypeScreen() {
   }, [loadSummaries]);
 
   const handleShareSummary = useCallback(async (summary: Summary) => {
+    if (!config) return;
+    
     try {
       const dateRange = `${summary.start_date} to ${summary.end_date}`;
       const shareContent = `${config.title} - ${dateRange}\n\n${summary.content}`;
@@ -107,9 +101,11 @@ export default function SummaryTypeScreen() {
       console.error('Error sharing summary:', error);
       Alert.alert('Error', 'Failed to share summary');
     }
-  }, [config.title]);
+  }, [config]);
 
   const handleForceGenerate = useCallback(async () => {
+    if (!summaryType) return;
+    
     try {
       setLoading(true);
       
@@ -150,6 +146,16 @@ export default function SummaryTypeScreen() {
       mountedRef.current = false;
     };
   }, [loadSummaries]);
+
+  // Validate summary type after all hooks are declared
+  if (!summaryType || !config) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Invalid summary type: {paramType}</Text>
+        <Button title="Go Back" onPress={() => router.back()} />
+      </View>
+    );
+  }
 
   if (loading) {
     return <LoadingScreen message={`Loading ${summaryType} summaries...`} />;
