@@ -44,6 +44,10 @@ class DatabaseService {
     }
 
     this.db = await SQLite.openDatabaseAsync('daily_planner.db');
+    // Enable foreign key enforcement (for ON DELETE CASCADE) and use WAL for concurrency
+    await this.db.execAsync('PRAGMA foreign_keys = ON');
+    await this.db.execAsync('PRAGMA journal_mode = WAL');
+    // Only proceed to create tables after ensuring PRAGMAs applied successfully
     await this.createTables();
     this.isInitialized = true;
   }
@@ -100,51 +104,32 @@ class DatabaseService {
   async saveDailyEntry(entry: DailyEntry): Promise<number> {
     if (!this.db) throw new Error('Database not initialized');
 
-    // Check if entry exists to get the correct entry ID
-    const existing = await this.db.getFirstAsync(
+    // Insert or update the daily entry atomically (UPSERT by date to avoid race conditions)
+    await this.db.runAsync(`
+      INSERT INTO daily_entries (date, daily_text, productivity_rating, mood_rating, energy_rating, updated_at)
+      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(date) DO UPDATE SET
+        daily_text = excluded.daily_text,
+        productivity_rating = excluded.productivity_rating,
+        mood_rating = excluded.mood_rating,
+        energy_rating = excluded.energy_rating,
+        updated_at = CURRENT_TIMESTAMP
+    `, [
+      entry.date,
+      entry.daily_text,
+      entry.ratings.productivity,
+      entry.ratings.mood,
+      entry.ratings.energy
+    ]);
+    // Retrieve the entry ID for the inserted or updated entry
+    const row = await this.db.getFirstAsync(
       'SELECT id FROM daily_entries WHERE date = ?',
       [entry.date]
     );
-    let entryId = (existing as any)?.id;
+    const entryId = (row as any)?.id;
 
     if (entryId) {
-      // Update existing entry
-      await this.db.runAsync(`
-        UPDATE daily_entries SET
-          daily_text = ?, 
-          productivity_rating = ?, 
-          mood_rating = ?, 
-          energy_rating = ?, 
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `, [
-        entry.daily_text,
-        entry.ratings.productivity,
-        entry.ratings.mood,
-        entry.ratings.energy,
-        entryId
-      ]);
-    } else {
-      // Insert new entry
-      const result = await this.db.runAsync(`
-        INSERT INTO daily_entries (
-          date, daily_text, productivity_rating, mood_rating, energy_rating, updated_at
-        ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-      `, [
-        entry.date,
-        entry.daily_text,
-        entry.ratings.productivity,
-        entry.ratings.mood,
-        entry.ratings.energy
-      ]);
-      entryId = result.lastInsertRowId;
-    }
-    
-    if (entryId) {
-      // Clear old items for this entry (now using correct entry ID)
-      await this.db.runAsync('DELETE FROM daily_entry_items WHERE entry_id = ?', [entryId]);
-
-      // Batch save all list items in a single transaction
+      // Save all list items for this entry in a single transaction (replacing old items)
       await this.saveItemsBatch(entryId, [
         ...entry.accomplishments.filter(item => item.trim()).map(item => ({ type: 'accomplishment', content: item })),
         ...entry.things_learned.filter(item => item.trim()).map(item => ({ type: 'learning', content: item })),
@@ -156,27 +141,31 @@ class DatabaseService {
   }
 
   private async saveItemsBatch(entryId: number, items: { type: string; content: string }[]): Promise<void> {
-    if (!this.db || items.length === 0) return;
+    if (!this.db) return;
 
     try {
       await this.db.execAsync('BEGIN TRANSACTION');
-      
-      // Prepare statement for reuse
-      const statement = await this.db.prepareAsync(
-        'INSERT INTO daily_entry_items (entry_id, type, content) VALUES (?, ?, ?)'
-      );
+      // Delete any existing items for this entry
+      await this.db.runAsync('DELETE FROM daily_entry_items WHERE entry_id = ?', [entryId]);
 
-      try {
-        // Execute prepared statement for each item
-        for (const item of items) {
-          await statement.executeAsync([entryId, item.type, item.content]);
+      // Insert all new items for this entry
+      if (items.length > 0) {
+        // Prepare statement for reuse
+        const statement = await this.db.prepareAsync(
+          'INSERT INTO daily_entry_items (entry_id, type, content) VALUES (?, ?, ?)'
+        );
+        try {
+          // Execute prepared statement for each item
+          for (const item of items) {
+            await statement.executeAsync([entryId, item.type, item.content]);
+          }
+        } finally {
+          // Always finalize the prepared statement
+          await statement.finalizeAsync();
         }
-        
-        await this.db.execAsync('COMMIT');
-      } finally {
-        // Always finalize the prepared statement
-        await statement.finalizeAsync();
       }
+      // Commit the transaction after all operations succeed
+      await this.db.execAsync('COMMIT');
     } catch (error) {
       // Roll back transaction on error
       await this.db.execAsync('ROLLBACK');
@@ -390,7 +379,7 @@ class DatabaseService {
     if (!this.db) throw new Error('Database not initialized');
     
     const result = await this.db.getFirstAsync(
-      'SELECT COUNT(*) as count FROM summaries WHERE type = ?', 
+      'SELECT COUNT(*) as count FROM summaries WHERE type = ?',
       [type]
     );
     return (result as any)?.count || 0;
