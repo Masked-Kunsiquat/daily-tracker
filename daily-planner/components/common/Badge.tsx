@@ -1,13 +1,14 @@
-// ============================================
 // components/common/Badge.tsx
-// ============================================
 import React from 'react';
 import { View, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
 
-type BadgeVariant = 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+// Exhaustive set of supported badge variants
+export type BadgeVariant = 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+
+type BadgeSize = NonNullable<BadgeProps['size']>;
 
 interface BadgeProps {
   label: string;
@@ -25,12 +26,22 @@ export const Badge: React.FC<BadgeProps> = ({
   textStyle,
 }) => {
   return (
-    <View 
-      style={[styles.container, variantStyles[variant], sizeStyles[size], style]} 
-      accessibilityRole="text" 
-      accessibilityLabel={label}
+    <View
+      style={[styles.container, variantStyles[variant], sizeStyles[size], style]}
     >
-      <Text style={[styles.text, textSizeStyles[size], variant === 'neutral' && styles.neutralText, textStyle]}>
+      {/* Moved accessibility to Text to avoid duplicate announcements */}
+      <Text
+        accessibilityRole="text"
+        accessibilityLabel={label}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+        style={[
+          styles.text,
+          textSizeStyles[size],
+          variant === 'neutral' && styles.neutralText,
+          textStyle,
+        ]}
+      >
         {label}
       </Text>
     </View>
@@ -52,7 +63,9 @@ const styles = StyleSheet.create({
   },
 });
 
-const variantStyles = StyleSheet.create({
+// Strongly typed mapping: every BadgeVariant key must exist, no extras allowed
+type VariantStyleMap = { [K in BadgeVariant]: ViewStyle };
+const variantStyles = StyleSheet.create<VariantStyleMap>({
   primary: {
     backgroundColor: Colors.primary,
   },
@@ -73,10 +86,12 @@ const variantStyles = StyleSheet.create({
   },
 });
 
-const sizeStyles = StyleSheet.create({
+// Strongly typed size map keyed by the component's size union
+type SizeStyleMap = { [K in BadgeSize]: ViewStyle };
+const sizeStyles = StyleSheet.create<SizeStyleMap>({
   small: {
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: Spacing.xs, // use token instead of magic number
     minWidth: 24,
   },
   medium: {
