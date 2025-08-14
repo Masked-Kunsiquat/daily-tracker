@@ -3,15 +3,15 @@
 // ============================================
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { ErrorBoundary } from '../components/common/ErrorBoundary';
-import { LoadingScreen } from '../components/common/LoadingScreen';
-import { RefreshableScrollView } from '../components/common/RefreshableScrollView';
-import { WelcomeHeader } from '../components/home/WelcomeHeader';
-import { QuickActions } from '../components/home/QuickActions';
-import { RecentEntriesSection } from '../components/home/RecentEntriesSection';
-import { StreakSection } from '../components/home/StreakSection';
-import { useHomeData } from '../hooks/useHomeData';
-import { Colors } from '../styles/colors';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { LoadingScreen } from '@/components/common/LoadingScreen';
+import { RefreshableScrollView } from '@/components/common/RefreshableScrollView';
+import { WelcomeHeader } from '@/components/home/WelcomeHeader';
+import { QuickActions } from '@/components/home/QuickActions';
+import { RecentEntriesSection } from '@/components/home/RecentEntriesSection';
+import { StreakSection } from '@/components/home/StreakSection';
+import { useHomeData } from '@/hooks/useHomeData';
+import { Colors } from '@/styles/colors';
 
 // Helper function to calculate entries for current week
 const getWeeklyEntryCount = (recentEntries: any[], todayISO: string): number => {
