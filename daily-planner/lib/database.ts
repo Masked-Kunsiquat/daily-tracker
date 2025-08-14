@@ -35,10 +35,17 @@ export interface Summary {
 
 class DatabaseService {
   private db: SQLite.SQLiteDatabase | null = null;
+  private isInitialized: boolean = false;
 
   async initialize(): Promise<void> {
+    // Return early if already initialized to make this idempotent
+    if (this.db && this.isInitialized) {
+      return;
+    }
+
     this.db = await SQLite.openDatabaseAsync('daily_planner.db');
     await this.createTables();
+    this.isInitialized = true;
   }
 
   private async createTables(): Promise<void> {
@@ -321,6 +328,7 @@ class DatabaseService {
     if (this.db) {
       await this.db.closeAsync();
       this.db = null;
+      this.isInitialized = false;
     }
   }
 }

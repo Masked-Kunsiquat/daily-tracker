@@ -33,6 +33,7 @@ export const useHomeData = () => {
 
   const loadData = useCallback(async () => {
     try {
+      // Initialize database (now idempotent, so safe to call multiple times)
       await databaseService.initialize();
 
       const [entries, todaysEntry, stats] = await Promise.all([
@@ -51,7 +52,8 @@ export const useHomeData = () => {
       summaryService.checkAndGeneratePendingSummaries().catch(console.error);
     } catch (error) {
       console.error('Error loading data:', error);
-      throw error;
+      // Don't re-throw here to prevent unhandled rejections
+      // The error is logged and the component stays in loading state
     } finally {
       if (mountedRef.current) {
         setLoading(false);
@@ -60,11 +62,20 @@ export const useHomeData = () => {
   }, [todayISO]);
 
   const refresh = useCallback(async () => {
-    await loadData();
+    try {
+      await loadData();
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      // Handle refresh errors gracefully without crashing
+    }
   }, [loadData]);
 
   useEffect(() => {
-    loadData();
+    // Handle promise rejection in useEffect with proper error handling
+    loadData().catch(error => {
+      console.error('Error in initial data load:', error);
+      // Error is already handled in loadData, but this prevents unhandled rejections
+    });
   }, [loadData]);
 
   return {
