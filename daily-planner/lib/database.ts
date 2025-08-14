@@ -100,23 +100,48 @@ class DatabaseService {
   async saveDailyEntry(entry: DailyEntry): Promise<number> {
     if (!this.db) throw new Error('Database not initialized');
 
-    // Insert or replace the main daily_entries row
-    const result = await this.db.runAsync(`
-      INSERT OR REPLACE INTO daily_entries (
-        date, daily_text, productivity_rating, mood_rating, energy_rating, updated_at
-      ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-    `, [
-      entry.date,
-      entry.daily_text,
-      entry.ratings.productivity,
-      entry.ratings.mood,
-      entry.ratings.energy
-    ]);
+    // Check if entry exists to get the correct entry ID
+    const existing = await this.db.getFirstAsync(
+      'SELECT id FROM daily_entries WHERE date = ?',
+      [entry.date]
+    );
+    let entryId = (existing as any)?.id;
 
-    const entryId = result.lastInsertRowId;
+    if (entryId) {
+      // Update existing entry
+      await this.db.runAsync(`
+        UPDATE daily_entries SET
+          daily_text = ?, 
+          productivity_rating = ?, 
+          mood_rating = ?, 
+          energy_rating = ?, 
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `, [
+        entry.daily_text,
+        entry.ratings.productivity,
+        entry.ratings.mood,
+        entry.ratings.energy,
+        entryId
+      ]);
+    } else {
+      // Insert new entry
+      const result = await this.db.runAsync(`
+        INSERT INTO daily_entries (
+          date, daily_text, productivity_rating, mood_rating, energy_rating, updated_at
+        ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `, [
+        entry.date,
+        entry.daily_text,
+        entry.ratings.productivity,
+        entry.ratings.mood,
+        entry.ratings.energy
+      ]);
+      entryId = result.lastInsertRowId;
+    }
     
     if (entryId) {
-      // Clear old items for this entry
+      // Clear old items for this entry (now using correct entry ID)
       await this.db.runAsync('DELETE FROM daily_entry_items WHERE entry_id = ?', [entryId]);
 
       // Batch save all list items in a single transaction
