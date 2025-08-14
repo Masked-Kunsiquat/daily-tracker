@@ -1,8 +1,8 @@
 // daily-planner/app/daily-entry.tsx
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
-import { databaseService, DailyEntry } from "../lib/database";
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { databaseService, DailyEntry } from '../lib/database';
 
 // Import reusable components
 import {
@@ -11,23 +11,21 @@ import {
   Card,
   TextInput,
   Button,
-} from "../components/common";
+} from '../components/common';
 
 // Import new modular components
-import { DynamicListSection } from "../components/daily-entry/DynamicListSection";
-import { RatingsSection } from "../components/daily-entry/RatingsSection";
+import { DynamicListSection } from '../components/daily-entry/DynamicListSection';
+import { RatingsSection } from '../components/daily-entry/RatingsSection';
 
-import { Colors } from "../styles/colors";
-import { Typography } from "../styles/typography";
-import { Spacing } from "../styles/spacing";
+import { Colors } from '../styles/colors';
+import { Typography } from '../styles/typography';
+import { Spacing } from '../styles/spacing';
 
 // Local date helper (returns local YYYY-MM-DD)
-import { formatDateISO } from "../utils/dateHelpers";
+import { formatDateISO } from '../utils/dateHelpers';
 
 // Helper function to safely normalize the date parameter
-const normalizeDateParam = (
-  paramDate: string | string[] | undefined,
-): string => {
+const normalizeDateParam = (paramDate: string | string[] | undefined): string => {
   // Handle array case - take first element
   let dateValue = Array.isArray(paramDate) ? paramDate[0] : paramDate;
 
@@ -37,7 +35,7 @@ const normalizeDateParam = (
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (dateRegex.test(dateValue)) {
       // Additional validation - ensure it's a valid calendar date
-      const [y, m, d] = dateValue.split("-").map(Number);
+      const [y, m, d] = dateValue.split('-').map(Number);
       const test = new Date(y, (m || 1) - 1, d || 1);
       if (
         !isNaN(test.getTime()) &&
@@ -70,10 +68,10 @@ export default function DailyEntryScreen() {
   // State
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [dailyText, setDailyText] = useState("");
-  const [accomplishments, setAccomplishments] = useState([""]);
-  const [thingsLearned, setThingsLearned] = useState([""]);
-  const [thingsGrateful, setThingsGrateful] = useState([""]);
+  const [dailyText, setDailyText] = useState('');
+  const [accomplishments, setAccomplishments] = useState(['']);
+  const [thingsLearned, setThingsLearned] = useState(['']);
+  const [thingsGrateful, setThingsGrateful] = useState(['']);
   const [ratings, setRatings] = useState({
     productivity: 3,
     mood: 3,
@@ -90,25 +88,19 @@ export default function DailyEntryScreen() {
         setDailyText(existingEntry.daily_text);
         // Ensure lists are not empty for the UI
         setAccomplishments(
-          existingEntry.accomplishments.length > 0
-            ? existingEntry.accomplishments
-            : [""],
+          existingEntry.accomplishments.length > 0 ? existingEntry.accomplishments : [''],
         );
         setThingsLearned(
-          existingEntry.things_learned.length > 0
-            ? existingEntry.things_learned
-            : [""],
+          existingEntry.things_learned.length > 0 ? existingEntry.things_learned : [''],
         );
         setThingsGrateful(
-          existingEntry.things_grateful.length > 0
-            ? existingEntry.things_grateful
-            : [""],
+          existingEntry.things_grateful.length > 0 ? existingEntry.things_grateful : [''],
         );
         setRatings(existingEntry.ratings);
       }
     } catch (error) {
-      console.error("Error loading existing entry:", error);
-      Alert.alert("Error", "Failed to load existing entry");
+      console.error('Error loading existing entry:', error);
+      Alert.alert('Error', 'Failed to load existing entry');
     } finally {
       if (mountedRef.current) setLoading(false);
     }
@@ -130,22 +122,20 @@ export default function DailyEntryScreen() {
       const entry: DailyEntry = {
         date: entryDate,
         daily_text: dailyText,
-        accomplishments: accomplishments.filter((item) => item.trim() !== ""),
-        things_learned: thingsLearned.filter((item) => item.trim() !== ""),
-        things_grateful: thingsGrateful.filter((item) => item.trim() !== ""),
+        accomplishments: accomplishments.filter((item) => item.trim() !== ''),
+        things_learned: thingsLearned.filter((item) => item.trim() !== ''),
+        things_grateful: thingsGrateful.filter((item) => item.trim() !== ''),
         ratings,
       };
 
       await databaseService.saveDailyEntry(entry);
 
-      Alert.alert(
-        "Entry Saved!",
-        "Your daily entry has been saved successfully.",
-        [{ text: "OK", onPress: () => router.back() }],
-      );
+      Alert.alert('Entry Saved!', 'Your daily entry has been saved successfully.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
     } catch (error) {
-      console.error("Error saving entry:", error);
-      Alert.alert("Error", "Failed to save entry. Please try again.");
+      console.error('Error saving entry:', error);
+      Alert.alert('Error', 'Failed to save entry. Please try again.');
     } finally {
       if (mountedRef.current) setSaving(false);
     }
@@ -157,12 +147,12 @@ export default function DailyEntryScreen() {
   }
 
   // Parse entryDate as local date to avoid UTC shift
-  const [y, m, d] = entryDate.split("-").map(Number);
-  const formattedDate = new Date(y, m - 1, d).toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  const [y, m, d] = entryDate.split('-').map(Number);
+  const formattedDate = new Date(y, m - 1, d).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   });
 
   return (
@@ -170,8 +160,7 @@ export default function DailyEntryScreen() {
       <RefreshableScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
-        onRefresh={loadExistingEntry}
-      >
+        onRefresh={loadExistingEntry}>
         <Text style={styles.dateHeader}>{formattedDate}</Text>
 
         <Card style={styles.card}>
@@ -235,7 +224,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.sizes.lg,
     fontWeight: Typography.weights.semibold,
     color: Colors.textSecondary,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: Spacing.lg,
   },
   card: {
@@ -243,7 +232,7 @@ const styles = StyleSheet.create({
   },
   textArea: {
     minHeight: 120,
-    textAlignVertical: "top",
+    textAlignVertical: 'top',
   },
   footer: {
     padding: Spacing.lg,

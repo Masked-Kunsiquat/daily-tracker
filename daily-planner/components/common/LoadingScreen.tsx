@@ -1,30 +1,23 @@
 // ============================================
 // components/common/LoadingScreen.tsx
 // ============================================
-import React from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
-} from "react-native";
-import { Colors } from "../../styles/colors";
-import { Typography } from "../../styles/typography";
-import { Spacing } from "../../styles/spacing";
+import React from 'react';
+import { View, Text, ActivityIndicator, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { Colors } from '../../styles/colors';
+import { Typography } from '../../styles/typography';
+import { Spacing } from '../../styles/spacing';
 
 interface LoadingScreenProps {
   message?: string;
   fullScreen?: boolean;
-  size?: "small" | "large";
+  size?: 'small' | 'large';
   color?: string;
 }
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({
-  message = "Loading...",
+  message = 'Loading...',
   fullScreen = true,
-  size = "large",
+  size = 'large',
   color = Colors.primary,
 }) => {
   const containerStyle = fullScreen ? styles.fullScreen : styles.inline;
@@ -39,8 +32,8 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: Colors.background,
   } as ViewStyle,
   fullScreen: {

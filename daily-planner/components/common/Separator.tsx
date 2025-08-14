@@ -1,10 +1,10 @@
 // ============================================
 // components/common/Separator.tsx
 // ============================================
-import React from "react";
-import { View, StyleSheet } from "react-native";
-import { Colors } from "@/styles/colors";
-import { Spacing } from "@/styles/spacing";
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Colors } from '@/styles/colors';
+import { Spacing } from '@/styles/spacing';
 
 interface SeparatorProps {
   spacing?: keyof typeof Spacing;
@@ -12,7 +12,7 @@ interface SeparatorProps {
 }
 
 export const Separator: React.FC<SeparatorProps> = ({
-  spacing = "md",
+  spacing = 'md',
   color = Colors.borderLight,
 }) => {
   return (
@@ -31,6 +31,6 @@ export const Separator: React.FC<SeparatorProps> = ({
 const styles = StyleSheet.create({
   separator: {
     height: 1,
-    width: "100%",
+    width: '100%',
   },
 });

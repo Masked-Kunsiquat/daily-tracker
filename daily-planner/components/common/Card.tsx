@@ -1,10 +1,10 @@
 // ============================================
 // components/common/Card.tsx
 // ============================================
-import React from "react";
-import { View, ViewStyle, StyleSheet, StyleProp } from "react-native";
-import { Colors } from "../../styles/colors";
-import { Spacing, SpacingSize } from "../../styles/spacing";
+import React from 'react';
+import { View, ViewStyle, StyleSheet, StyleProp } from 'react-native';
+import { Colors } from '../../styles/colors';
+import { Spacing, SpacingSize } from '../../styles/spacing';
 
 interface CardProps {
   children: React.ReactNode;
@@ -16,18 +16,12 @@ interface CardProps {
 export const Card: React.FC<CardProps> = ({
   children,
   style,
-  padding = "lg",
+  padding = 'lg',
   noBorder = false,
 }) => {
   return (
     <View
-      style={[
-        styles.container,
-        { padding: Spacing[padding] },
-        !noBorder && styles.border,
-        style,
-      ]}
-    >
+      style={[styles.container, { padding: Spacing[padding] }, !noBorder && styles.border, style]}>
       {children}
     </View>
   );

@@ -1,17 +1,17 @@
 // ============================================
 // components/common/TextInput.tsx
 // ============================================
-import React, { forwardRef } from "react";
+import React, { forwardRef } from 'react';
 import {
   TextInput as RNTextInput,
   TextInputProps as RNTextInputProps,
   View,
   Text,
   StyleSheet,
-} from "react-native";
-import { Colors } from "@/styles/colors";
-import { Typography } from "@/styles/typography";
-import { Spacing } from "@/styles/spacing";
+} from 'react-native';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 
 interface TextInputProps extends RNTextInputProps {
   label?: string;
@@ -37,7 +37,7 @@ export const TextInput = forwardRef<RNTextInput, TextInputProps>(
   },
 );
 
-TextInput.displayName = "TextInput";
+TextInput.displayName = 'TextInput';
 
 const styles = StyleSheet.create({
   container: {

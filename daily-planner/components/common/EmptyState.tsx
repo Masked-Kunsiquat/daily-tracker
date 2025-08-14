@@ -1,12 +1,12 @@
 // ============================================
 // components/common/EmptyState.tsx
 // ============================================
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { Colors } from "@/styles/colors";
-import { Typography } from "@/styles/typography";
-import { Spacing } from "@/styles/spacing";
-import { Button } from "./Button";
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
+import { Button } from './Button';
 
 interface EmptyStateProps {
   icon?: string;
@@ -17,7 +17,7 @@ interface EmptyStateProps {
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  icon = "📝",
+  icon = '📝',
   title,
   message,
   actionLabel,
@@ -40,8 +40,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 const styles = StyleSheet.create({
   container: {
     padding: Spacing.xxxl,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   icon: {
     fontSize: 48,
@@ -52,12 +52,12 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.semibold,
     color: Colors.text,
     marginBottom: Spacing.sm,
-    textAlign: "center",
+    textAlign: 'center',
   },
   message: {
     fontSize: Typography.sizes.md,
     color: Colors.textSecondary,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: Typography.sizes.md * Typography.lineHeights.normal,
   },
   action: {

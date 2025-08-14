@@ -1,21 +1,14 @@
 // ============================================
 // components/home/QuickActions.tsx
 // ============================================
-import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
-} from "react-native";
-import { Link } from "expo-router";
-import { Colors } from "@/styles/colors";
-import { Typography } from "@/styles/typography";
-import { Spacing } from "@/styles/spacing";
-import { Badge } from "@/components/common/Badge";
-import { SummaryStats } from "@/hooks/useHomeData";
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { Link } from 'expo-router';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
+import { Badge } from '@/components/common/Badge';
+import { SummaryStats } from '@/hooks/useHomeData';
 
 interface QuickActionsProps {
   todayISO: string;
@@ -32,17 +25,13 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
     <View style={styles.container}>
       <Link
         href={{
-          pathname: "/daily-entry",
+          pathname: '/daily-entry',
           params: { date: todayISO },
         }}
-        asChild
-      >
-        <TouchableOpacity
-          style={styles.primaryButton}
-          accessibilityRole="button"
-        >
+        asChild>
+        <TouchableOpacity style={styles.primaryButton} accessibilityRole="button">
           <Text style={styles.primaryButtonText}>
-            {hasEntryToday ? "✏️ Edit Today's Entry" : "📝 New Daily Entry"}
+            {hasEntryToday ? "✏️ Edit Today's Entry" : '📝 New Daily Entry'}
           </Text>
         </TouchableOpacity>
       </Link>
@@ -51,8 +40,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         <TouchableOpacity
           style={styles.secondaryButton}
           accessibilityRole="button"
-          accessibilityHint="View weekly, monthly, and yearly summaries"
-        >
+          accessibilityHint="View weekly, monthly, and yearly summaries">
           <Text style={styles.secondaryButtonText}>📊 View Summaries</Text>
           <View style={styles.badges}>
             <Badge label={`${summaryStats.weekly}W`} size="small" />
@@ -75,7 +63,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     padding: Spacing.lg,
     borderRadius: 12,
-    alignItems: "center",
+    alignItems: 'center',
   } as ViewStyle,
   primaryButtonText: {
     color: Colors.textInverse,
@@ -86,11 +74,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     padding: Spacing.lg,
     borderRadius: 12,
-    alignItems: "center",
+    alignItems: 'center',
     borderWidth: 2,
     borderColor: Colors.border,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   } as ViewStyle,
   secondaryButtonText: {
     color: Colors.text,
@@ -98,7 +86,7 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.semibold,
   } as TextStyle,
   badges: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: Spacing.xs,
     marginLeft: Spacing.sm,
   } as ViewStyle,

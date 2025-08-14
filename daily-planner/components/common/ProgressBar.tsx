@@ -1,7 +1,7 @@
 // components/common/ProgressBar.tsx
-import React from "react";
-import { View, StyleSheet } from "react-native";
-import { Colors } from "@/styles/colors";
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Colors } from '@/styles/colors';
 
 interface ProgressBarProps {
   progress: number; // 0 to 1
@@ -28,8 +28,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
       accessible={true}
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 1, now: clampedProgress }}
-      style={[styles.container, { backgroundColor, height }]}
-    >
+      style={[styles.container, { backgroundColor, height }]}>
       <View
         style={[
           styles.progress,
@@ -45,12 +44,12 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
+    width: '100%',
     borderRadius: 2,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   progress: {
-    height: "100%",
+    height: '100%',
     borderRadius: 2,
   },
 });

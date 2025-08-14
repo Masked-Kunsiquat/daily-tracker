@@ -1,5 +1,5 @@
-import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 
 export default function RootLayout() {
   return (
@@ -9,22 +9,22 @@ export default function RootLayout() {
         <Stack.Screen
           name="index"
           options={{
-            title: "Daily Planner",
-            headerStyle: { backgroundColor: "#f8f9fa" },
-            headerTitleStyle: { fontWeight: "bold" },
+            title: 'Daily Planner',
+            headerStyle: { backgroundColor: '#f8f9fa' },
+            headerTitleStyle: { fontWeight: 'bold' },
           }}
         />
         <Stack.Screen
           name="daily-entry"
           options={{
-            title: "Daily Entry",
-            presentation: "modal",
+            title: 'Daily Entry',
+            presentation: 'modal',
           }}
         />
         <Stack.Screen
           name="summaries"
           options={{
-            title: "Summaries",
+            title: 'Summaries',
           }}
         />
       </Stack>

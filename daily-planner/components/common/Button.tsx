@@ -1,7 +1,7 @@
 // ============================================
 // components/common/Button.tsx
 // ============================================
-import React from "react";
+import React from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -11,18 +11,13 @@ import {
   ViewStyle,
   TextStyle,
   TouchableOpacityProps,
-} from "react-native";
-import { Colors } from "../../styles/colors";
-import { Typography } from "../../styles/typography";
-import { Spacing } from "../../styles/spacing";
+} from 'react-native';
+import { Colors } from '../../styles/colors';
+import { Typography } from '../../styles/typography';
+import { Spacing } from '../../styles/spacing';
 
-export type ButtonVariant =
-  | "primary"
-  | "secondary"
-  | "danger"
-  | "ghost"
-  | "outline";
-export type ButtonSize = "small" | "medium" | "large";
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
+export type ButtonSize = 'small' | 'medium' | 'large';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -35,8 +30,8 @@ interface ButtonProps extends TouchableOpacityProps {
 
 export const Button: React.FC<ButtonProps> = ({
   title,
-  variant = "primary",
-  size = "medium",
+  variant = 'primary',
+  size = 'medium',
   loading = false,
   icon,
   fullWidth = false,
@@ -63,16 +58,11 @@ export const Button: React.FC<ButtonProps> = ({
   const isDisabled = disabled || loading;
 
   return (
-    <TouchableOpacity
-      style={buttonStyles}
-      disabled={isDisabled}
-      activeOpacity={0.7}
-      {...props}
-    >
+    <TouchableOpacity style={buttonStyles} disabled={isDisabled} activeOpacity={0.7} {...props}>
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === "primary" ? Colors.textInverse : Colors.primary}
+          color={variant === 'primary' ? Colors.textInverse : Colors.primary}
         />
       ) : (
         <>
@@ -86,9 +76,9 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 8,
   } as ViewStyle,
   primary: {
@@ -103,15 +93,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.danger,
   } as ViewStyle,
   ghost: {
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   } as ViewStyle,
   outline: {
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: Colors.primary,
   } as ViewStyle,
   fullWidth: {
-    width: "100%",
+    width: '100%',
   } as ViewStyle,
   disabled: {
     opacity: 0.5,
