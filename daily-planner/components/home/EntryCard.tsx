@@ -47,8 +47,8 @@ EntryCard.displayName = 'EntryCard';
 const RatingDots: React.FC<{ ratings: DailyEntry['ratings'] }> = ({ ratings }) => (
   <View style={styles.ratingDots} accessible accessibilityLabel="Ratings">
     <View style={[styles.dot, { backgroundColor: getRatingColor(ratings.productivity) }]} />
-    <View style={[styles.dot, { backgroundColor: getRatingColor(ratings.mood) }]} />
-    <View style={[styles.dot, { backgroundColor: getRatingColor(ratings.energy) }]} />
+    <View style={[styles.dot, styles.dotSpacing, { backgroundColor: getRatingColor(ratings.mood) }]} />
+    <View style={[styles.dot, styles.dotSpacing, { backgroundColor: getRatingColor(ratings.energy) }]} />
   </View>
 );
 
@@ -74,12 +74,14 @@ const styles = StyleSheet.create({
   } as TextStyle,
   ratingDots: {
     flexDirection: 'row',
-    gap: 4,
   } as ViewStyle,
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
+  } as ViewStyle,
+  dotSpacing: {
+    marginLeft: 4,
   } as ViewStyle,
   preview: {
     fontSize: Typography.sizes.sm,
