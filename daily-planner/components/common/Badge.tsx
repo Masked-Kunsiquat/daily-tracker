@@ -2,7 +2,7 @@
 // components/common/Badge.tsx
 // ============================================
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
@@ -13,16 +13,26 @@ interface BadgeProps {
   label: string;
   variant?: BadgeVariant;
   size?: 'small' | 'medium';
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 export const Badge: React.FC<BadgeProps> = ({
   label,
   variant = 'primary',
   size = 'small',
+  style,
+  textStyle,
 }) => {
   return (
-    <View style={[styles.container, variantStyles[variant], sizeStyles[size]]}>
-      <Text style={[styles.text, textSizeStyles[size]]}>{label}</Text>
+    <View 
+      style={[styles.container, variantStyles[variant], sizeStyles[size], style]} 
+      accessibilityRole="text" 
+      accessibilityLabel={label}
+    >
+      <Text style={[styles.text, textSizeStyles[size], variant === 'neutral' && styles.neutralText, textStyle]}>
+        {label}
+      </Text>
     </View>
   );
 };
@@ -36,6 +46,9 @@ const styles = StyleSheet.create({
   text: {
     color: Colors.textInverse,
     fontWeight: Typography.weights.semibold,
+  },
+  neutralText: {
+    color: Colors.text, // better contrast on muted background
   },
 });
 
