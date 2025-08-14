@@ -13,6 +13,18 @@ import { StreakSection } from '../components/home/StreakSection';
 import { useHomeData } from '../hooks/useHomeData';
 import { Colors } from '../styles/colors';
 
+// Helper function to calculate entries for current week
+const getWeeklyEntryCount = (recentEntries: any[], todayISO: string): number => {
+  const today = new Date(todayISO);
+  const dayOfWeek = today.getDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() + mondayOffset);
+  const weekStartISO = weekStart.toISOString().split('T')[0];
+
+  return recentEntries.filter(entry => entry.date >= weekStartISO).length;
+};
+
 export default function HomeScreen() {
   const {
     loading,
@@ -26,6 +38,9 @@ export default function HomeScreen() {
   if (loading) {
     return <LoadingScreen message="Loading your journal..." />;
   }
+
+  // Calculate actual weekly entry count
+  const weeklyEntryCount = getWeeklyEntryCount(recentEntries, todayISO);
 
   return (
     <ErrorBoundary>
@@ -43,7 +58,7 @@ export default function HomeScreen() {
           todayISO={todayISO} 
         />
         
-        <StreakSection entryCount={recentEntries.length} />
+        <StreakSection entryCount={weeklyEntryCount} />
       </RefreshableScrollView>
     </ErrorBoundary>
   );
