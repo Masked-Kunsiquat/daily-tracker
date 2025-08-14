@@ -92,18 +92,19 @@ export default function SummaryTypeScreen() {
     if (!config) return;
     
     try {
+      const title = config?.title ?? 'Daily Planner';
       const dateRange = `${summary.start_date} to ${summary.end_date}`;
-      const shareContent = `${config.title} - ${dateRange}\n\n${summary.content}`;
+      const shareContent = `${title} - ${dateRange}\n\n${summary.content}`;
       
       await Share.share({
         message: shareContent,
-        title: `${config.title} - ${dateRange}`,
+        title: `${title} - ${dateRange}`,
       });
     } catch (error) {
       console.error('Error sharing summary:', error);
       Alert.alert('Error', 'Failed to share summary');
     }
-  }, [config]);
+  }, [config?.title]);
 
   const handleForceGenerate = useCallback(async () => {
     if (!summaryType) return;
