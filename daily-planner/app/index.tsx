@@ -1,6 +1,4 @@
-// ============================================
 // app/index.tsx
-// ============================================
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
@@ -12,9 +10,10 @@ import { RecentEntriesSection } from '@/components/home/RecentEntriesSection';
 import { StreakSection } from '@/components/home/StreakSection';
 import { useHomeData } from '@/hooks/useHomeData';
 import { Colors } from '@/styles/colors';
+import type { DailyEntry } from '@/lib/database';
 
 // Helper function to calculate entries for current week
-const getWeeklyEntryCount = (recentEntries: any[], todayISO: string): number => {
+const getWeeklyEntryCount = (recentEntries: DailyEntry[], todayISO: string): number => {
   const today = new Date(todayISO);
   const dayOfWeek = today.getDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
