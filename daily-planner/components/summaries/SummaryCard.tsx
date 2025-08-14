@@ -1,4 +1,4 @@
-// daily-planner/components/summaries/SummaryCard.tsx
+// components/summaries/SummaryCard.tsx
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import { router } from 'expo-router';
@@ -11,9 +11,7 @@ interface SummaryCardProps {
   title: string;
   description: string;
   count: number;
-  summaryType: 'weekly' | 'monthly' | 'yearly';
-  /** Optional custom onPress handler - if not provided, navigates to summary type screen */
-  onPress?: () => void;
+  onPress: () => void; // Remove summaryType since onPress is always provided
   /** Optional overrides for screen reader text */
   accessibilityLabel?: string;
   accessibilityHint?: string;
@@ -26,30 +24,19 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   title,
   description,
   count,
-  summaryType,
   onPress,
   accessibilityLabel,
   accessibilityHint,
 }) => {
-  const handlePress = () => {
-    if (onPress) {
-      onPress();
-    } else {
-      // Default navigation to summary type detail screen
-      router.push(`/summaries/${summaryType}` as any);
-    }
-  };
-
-  // Why: Provide meaningful defaults while allowing explicit overrides.
+  // Provide meaningful defaults while allowing explicit overrides
   const a11yLabel =
     accessibilityLabel ?? `${title}. ${description}. ${count} ${count === 1 ? 'item' : 'items'}.`;
   const a11yHint = accessibilityHint ?? 'Opens details.';
 
   return (
     <TouchableOpacity
-      onPress={handlePress}
+      onPress={onPress}
       activeOpacity={0.8}
-      // Why: Increase touch target without changing visual layout.
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       accessibilityRole="button"
       accessibilityLabel={a11yLabel}
@@ -63,7 +50,6 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
           </View>
           <Badge label={String(count)} variant="primary" size="medium" />
         </View>
-        {/* Why: Decorative only; must not be read by screen readers. */}
         <Text
           style={styles.arrow}
           accessible={false}

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { summaryService } from '../lib/summaryService';
-import { Summary } from '../lib/database';
-import { RefreshableScrollView, LoadingScreen, EmptyState } from '../components/common';
-import { SummaryCard } from '../components/summaries/SummaryCard';
-import { Colors } from '../styles/colors';
-import { Typography } from '../styles/typography';
-import { Spacing } from '../styles/spacing';
+import { router } from 'expo-router';
+import { summaryService } from '@/lib/summaryService';
+import { Summary } from '@/lib/database';
+import { RefreshableScrollView, LoadingScreen, EmptyState } from '@/components/common';
+import { SummaryCard } from '@/components/summaries/SummaryCard';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 
 type SummaryType = 'weekly' | 'monthly' | 'yearly';
 
@@ -54,9 +55,7 @@ export default function SummariesScreen() {
   }, [loadData]);
 
   const handlePressSummary = (type: SummaryType) => {
-    // Implement navigation to a new screen to show the list of summaries
-    // router.push(`/summaries/${type}`);
-    console.log(`Navigating to ${type} summaries...`);
+    router.push(`/summaries/${type}` as any);
   };
 
   const hasAnySummaries =
