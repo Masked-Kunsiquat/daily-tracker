@@ -107,7 +107,11 @@ export default function SummaryTypeScreen() {
   }, [config?.title]);
 
   const handleForceGenerate = useCallback(async () => {
-    if (!summaryType) return;
+    // Guard against invalid summary types
+    if (!summaryType || !['weekly', 'monthly', 'yearly'].includes(summaryType)) {
+      Alert.alert('Error', 'Invalid summary type. Cannot generate summary.');
+      return;
+    }
     
     try {
       setLoading(true);
@@ -139,6 +143,8 @@ export default function SummaryTypeScreen() {
     } catch (error) {
       console.error('Error force generating summary:', error);
       Alert.alert('Note', 'Could not generate summary. You may need more entries or existing summaries for the selected period.');
+    } finally {
+      // Always reset loading state
       setLoading(false);
     }
   }, [summaryType, loadSummaries]);
