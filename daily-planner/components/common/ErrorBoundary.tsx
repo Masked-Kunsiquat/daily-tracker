@@ -1,7 +1,5 @@
-// ============================================
 // components/common/ErrorBoundary.tsx
-// ============================================
-import React, { Component, ReactNode } from "react";
+import React, { Component, ReactNode } from 'react';
 import {
   View,
   Text,
@@ -10,10 +8,10 @@ import {
   ScrollView,
   ViewStyle,
   TextStyle,
-} from "react-native";
-import { Colors } from "../../styles/colors";
-import { Typography } from "../../styles/typography";
-import { Spacing } from "../../styles/spacing";
+} from 'react-native';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 
 interface Props {
   children: ReactNode;
@@ -36,7 +34,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: { componentStack: string }) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
   resetError = () => {
@@ -55,14 +53,12 @@ export class ErrorBoundary extends Component<Props, State> {
             <Text style={styles.emoji}>😔</Text>
             <Text style={styles.title}>Oops! Something went wrong</Text>
             <Text style={styles.message}>
-              We're sorry for the inconvenience. Please try restarting the app.
+              We&apos;re sorry for the inconvenience. Please try restarting the app.
             </Text>
             {__DEV__ && this.state.error && (
               <View style={styles.errorDetails}>
                 <Text style={styles.errorTitle}>Error Details (Dev Only):</Text>
-                <Text style={styles.errorText}>
-                  {this.state.error.toString()}
-                </Text>
+                <Text style={styles.errorText}>{this.state.error.toString()}</Text>
               </View>
             )}
             <TouchableOpacity style={styles.button} onPress={this.resetError}>
@@ -84,8 +80,8 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   content: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: Spacing.xl,
   } as ViewStyle,
   emoji: {
@@ -97,12 +93,12 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.bold,
     color: Colors.text,
     marginBottom: Spacing.md,
-    textAlign: "center",
+    textAlign: 'center',
   } as TextStyle,
   message: {
     fontSize: Typography.sizes.md,
     color: Colors.textSecondary,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: Spacing.xxl,
     lineHeight: Typography.sizes.md * Typography.lineHeights.normal,
   } as TextStyle,
@@ -111,7 +107,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: 8,
     marginBottom: Spacing.xl,
-    maxWidth: "100%",
+    maxWidth: '100%',
   } as ViewStyle,
   errorTitle: {
     fontSize: Typography.sizes.sm,
@@ -122,7 +118,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: Typography.sizes.xs,
     color: Colors.textMuted,
-    fontFamily: "monospace",
+    fontFamily: 'monospace',
   } as TextStyle,
   button: {
     backgroundColor: Colors.primary,

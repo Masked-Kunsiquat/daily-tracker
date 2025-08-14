@@ -1,26 +1,18 @@
-// ============================================
 // components/common/IconButton.tsx
-// ============================================
-import React from "react";
-import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  TouchableOpacityProps,
-} from "react-native";
-import { Colors } from "@/styles/colors";
-import { Spacing } from "@/styles/spacing";
+import React from 'react';
+import { TouchableOpacity, Text, StyleSheet, TouchableOpacityProps } from 'react-native';
+import { Colors } from '@/styles/colors';
 
 interface IconButtonProps extends TouchableOpacityProps {
   icon: string;
-  size?: "small" | "medium" | "large";
+  size?: 'small' | 'medium' | 'large';
   color?: string;
   label?: string;
 }
 
 export const IconButton: React.FC<IconButtonProps> = ({
   icon,
-  size = "medium",
+  size = 'medium',
   color = Colors.text,
   label,
   style,
@@ -30,8 +22,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
   ...props
 }) => {
   // Default accessibility label: use provided label, explicit accessibilityLabel, or fallback
-  const defaultAccessibilityLabel =
-    accessibilityLabel || label || `${icon} button`;
+  const defaultAccessibilityLabel = accessibilityLabel || label || `${icon} button`;
 
   // Default hit slop for better touch targets
   const defaultHitSlop = hitSlop || {
@@ -45,11 +36,10 @@ export const IconButton: React.FC<IconButtonProps> = ({
     <TouchableOpacity
       style={[styles.container, sizeStyles[size], style]}
       activeOpacity={0.7}
-      accessibilityRole={accessibilityRole || "button"}
+      accessibilityRole={accessibilityRole || 'button'}
       accessibilityLabel={defaultAccessibilityLabel}
       hitSlop={defaultHitSlop}
-      {...props}
-    >
+      {...props}>
       <Text style={[iconSizeStyles[size], { color }]}>{icon}</Text>
     </TouchableOpacity>
   );
@@ -57,8 +47,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 20,
   },
 });
