@@ -272,9 +272,10 @@ export class SummaryService {
           return await this.generateWeeklySummary(date);
         case 'monthly':
           return await this.generateMonthlySummary(date);
-        case 'yearly':
+        case 'yearly': {
           const year = parseInt(date.split('-')[0]);
           return await this.generateYearlySummary(year);
+        }
         default:
           throw new Error(`Invalid summary type: ${type}`);
       }
