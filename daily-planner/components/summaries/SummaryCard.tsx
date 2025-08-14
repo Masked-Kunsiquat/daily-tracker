@@ -1,17 +1,19 @@
 // daily-planner/components/summaries/SummaryCard.tsx
-
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
+import { router } from 'expo-router';
 import { Badge, Card } from '../common';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 
 interface SummaryCardProps {
   title: string;
   description: string;
   count: number;
-  onPress: () => void;
+  summaryType: 'weekly' | 'monthly' | 'yearly';
+  /** Optional custom onPress handler - if not provided, navigates to summary type screen */
+  onPress?: () => void;
   /** Optional overrides for screen reader text */
   accessibilityLabel?: string;
   accessibilityHint?: string;
@@ -24,10 +26,20 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   title,
   description,
   count,
+  summaryType,
   onPress,
   accessibilityLabel,
   accessibilityHint,
 }) => {
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else {
+      // Default navigation to summary type detail screen
+      router.push(`/summaries/${summaryType}` as any);
+    }
+  };
+
   // Why: Provide meaningful defaults while allowing explicit overrides.
   const a11yLabel =
     accessibilityLabel ?? `${title}. ${description}. ${count} ${count === 1 ? 'item' : 'items'}.`;
@@ -35,7 +47,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.8}
       // Why: Increase touch target without changing visual layout.
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}

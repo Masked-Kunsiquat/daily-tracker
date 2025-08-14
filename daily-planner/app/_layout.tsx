@@ -27,6 +27,13 @@ export default function RootLayout() {
             title: 'Summaries',
           }}
         />
+        <Stack.Screen
+          name="summaries/[type]"
+          options={{
+            title: 'Summary Details',
+            presentation: 'card',
+          }}
+        />
       </Stack>
     </>
   );
