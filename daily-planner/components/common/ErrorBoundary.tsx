@@ -1,11 +1,17 @@
-// ============================================
 // components/common/ErrorBoundary.tsx
-// ============================================
 import React, { Component, ReactNode } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ViewStyle, TextStyle } from 'react-native';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 
 interface Props {
   children: ReactNode;
@@ -47,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <Text style={styles.emoji}>😔</Text>
             <Text style={styles.title}>Oops! Something went wrong</Text>
             <Text style={styles.message}>
-              We're sorry for the inconvenience. Please try restarting the app.
+              We&apos;re sorry for the inconvenience. Please try restarting the app.
             </Text>
             {__DEV__ && this.state.error && (
               <View style={styles.errorDetails}>

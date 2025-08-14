@@ -1,14 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { router } from 'expo-router';
 import { summaryService } from '../lib/summaryService';
 import { Summary } from '../lib/database';
-import {
-  RefreshableScrollView,
-  Card,
-  LoadingScreen,
-  EmptyState,
-} from '../components/common';
+import { RefreshableScrollView, LoadingScreen, EmptyState } from '../components/common';
 import { SummaryCard } from '../components/summaries/SummaryCard';
 import { Colors } from '../styles/colors';
 import { Typography } from '../styles/typography';
@@ -58,15 +52,16 @@ export default function SummariesScreen() {
       mountedRef.current = false;
     };
   }, [loadData]);
-  
+
   const handlePressSummary = (type: SummaryType) => {
     // Implement navigation to a new screen to show the list of summaries
     // router.push(`/summaries/${type}`);
     console.log(`Navigating to ${type} summaries...`);
   };
 
-  const hasAnySummaries = weeklySummaries.length > 0 || monthlySummaries.length > 0 || yearlySummaries.length > 0;
-  
+  const hasAnySummaries =
+    weeklySummaries.length > 0 || monthlySummaries.length > 0 || yearlySummaries.length > 0;
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -75,13 +70,10 @@ export default function SummariesScreen() {
     <RefreshableScrollView
       style={styles.container}
       onRefresh={onRefresh}
-      contentContainerStyle={styles.scrollContent}
-    >
+      contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your Progress</Text>
-        <Text style={styles.headerSubtitle}>
-          AI-powered insights from your daily entries
-        </Text>
+        <Text style={styles.headerSubtitle}>AI-powered insights from your daily entries</Text>
       </View>
 
       {hasAnySummaries ? (

@@ -1,15 +1,7 @@
-// ============================================
 // components/common/IconButton.tsx
-// ============================================
 import React from 'react';
-import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  TouchableOpacityProps,
-} from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, TouchableOpacityProps } from 'react-native';
 import { Colors } from '@/styles/colors';
-import { Spacing } from '@/styles/spacing';
 
 interface IconButtonProps extends TouchableOpacityProps {
   icon: string;
@@ -31,19 +23,23 @@ export const IconButton: React.FC<IconButtonProps> = ({
 }) => {
   // Default accessibility label: use provided label, explicit accessibilityLabel, or fallback
   const defaultAccessibilityLabel = accessibilityLabel || label || `${icon} button`;
-  
+
   // Default hit slop for better touch targets
-  const defaultHitSlop = hitSlop || { top: 10, bottom: 10, left: 10, right: 10 };
+  const defaultHitSlop = hitSlop || {
+    top: 10,
+    bottom: 10,
+    left: 10,
+    right: 10,
+  };
 
   return (
     <TouchableOpacity
       style={[styles.container, sizeStyles[size], style]}
       activeOpacity={0.7}
-      accessibilityRole={accessibilityRole || "button"}
+      accessibilityRole={accessibilityRole || 'button'}
       accessibilityLabel={defaultAccessibilityLabel}
       hitSlop={defaultHitSlop}
-      {...props}
-    >
+      {...props}>
       <Text style={[iconSizeStyles[size], { color }]}>{icon}</Text>
     </TouchableOpacity>
   );

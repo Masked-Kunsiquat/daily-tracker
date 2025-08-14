@@ -1,38 +1,52 @@
 // ============================================
 // components/daily-entry/RatingsSection.tsx
 // ============================================
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, AccessibilityActionEvent } from 'react-native';
-import { Card, Separator } from '../common';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  AccessibilityActionEvent,
+} from "react-native";
+import { Card, Separator } from "../common";
+import { Colors } from "../../styles/colors";
+import { Typography } from "../../styles/typography";
+import { Spacing } from "../../styles/spacing";
 
-type RatingCategory = 'productivity' | 'mood' | 'energy';
+type RatingCategory = "productivity" | "mood" | "energy";
 
 interface RatingsSectionProps {
   ratings: Record<RatingCategory, number>;
-  setRatings: React.Dispatch<React.SetStateAction<Record<RatingCategory, number>>>;
+  setRatings: React.Dispatch<
+    React.SetStateAction<Record<RatingCategory, number>>
+  >;
 }
 
 /**
  * A section for users to rate different categories using stars.
  */
-export const RatingsSection: React.FC<RatingsSectionProps> = ({ ratings, setRatings }) => {
+export const RatingsSection: React.FC<RatingsSectionProps> = ({
+  ratings,
+  setRatings,
+}) => {
   const updateRating = (category: RatingCategory, value: number) => {
-    setRatings(prev => ({ ...prev, [category]: value }));
+    setRatings((prev) => ({ ...prev, [category]: value }));
   };
 
-  const handleAccessibilityAction = (category: RatingCategory, event: AccessibilityActionEvent) => {
+  const handleAccessibilityAction = (
+    category: RatingCategory,
+    event: AccessibilityActionEvent,
+  ) => {
     const currentRating = ratings[category];
-    
+
     switch (event.nativeEvent.actionName) {
-      case 'increment':
+      case "increment":
         if (currentRating < 5) {
           updateRating(category, currentRating + 1);
         }
         break;
-      case 'decrement':
+      case "decrement":
         if (currentRating > 1) {
           updateRating(category, currentRating - 1);
         }
@@ -43,7 +57,7 @@ export const RatingsSection: React.FC<RatingsSectionProps> = ({ ratings, setRati
   const renderStarRating = (category: RatingCategory) => {
     const currentRating = ratings[category];
     const categoryLabel = category.charAt(0).toUpperCase() + category.slice(1);
-    
+
     return (
       <View style={styles.starContainer}>
         {[1, 2, 3, 4, 5].map((star) => (
@@ -57,15 +71,22 @@ export const RatingsSection: React.FC<RatingsSectionProps> = ({ ratings, setRati
               min: 1,
               max: 5,
               now: currentRating,
-              text: `${currentRating} out of 5 stars`
+              text: `${currentRating} out of 5 stars`,
             }}
-            onAccessibilityAction={(event) => handleAccessibilityAction(category, event)}
+            onAccessibilityAction={(event) =>
+              handleAccessibilityAction(category, event)
+            }
             accessibilityActions={[
-              { name: 'increment', label: 'Increase rating' },
-              { name: 'decrement', label: 'Decrease rating' }
+              { name: "increment", label: "Increase rating" },
+              { name: "decrement", label: "Decrease rating" },
             ]}
           >
-            <Text style={[styles.star, star <= currentRating ? styles.starFilled : {}]}>
+            <Text
+              style={[
+                styles.star,
+                star <= currentRating ? styles.starFilled : {},
+              ]}
+            >
               ⭐
             </Text>
           </TouchableOpacity>
@@ -79,17 +100,17 @@ export const RatingsSection: React.FC<RatingsSectionProps> = ({ ratings, setRati
       <Text style={styles.sectionTitle}>Daily Ratings</Text>
       <View style={styles.ratingItem}>
         <Text style={styles.ratingLabel}>Productivity</Text>
-        {renderStarRating('productivity')}
+        {renderStarRating("productivity")}
       </View>
       <Separator />
       <View style={styles.ratingItem}>
         <Text style={styles.ratingLabel}>Mood</Text>
-        {renderStarRating('mood')}
+        {renderStarRating("mood")}
       </View>
       <Separator />
       <View style={styles.ratingItem}>
         <Text style={styles.ratingLabel}>Energy</Text>
-        {renderStarRating('energy')}
+        {renderStarRating("energy")}
       </View>
     </Card>
   );
@@ -106,9 +127,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   ratingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: Spacing.md,
   },
   ratingLabel: {
@@ -117,7 +138,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   starContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   star: {
     fontSize: 28,

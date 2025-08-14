@@ -2,7 +2,7 @@
 // app/index.tsx
 // ============================================
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import { RefreshableScrollView } from '@/components/common/RefreshableScrollView';
@@ -22,18 +22,11 @@ const getWeeklyEntryCount = (recentEntries: any[], todayISO: string): number => 
   weekStart.setDate(today.getDate() + mondayOffset);
   const weekStartISO = weekStart.toISOString().split('T')[0];
 
-  return recentEntries.filter(entry => entry.date >= weekStartISO).length;
+  return recentEntries.filter((entry) => entry.date >= weekStartISO).length;
 };
 
 export default function HomeScreen() {
-  const {
-    loading,
-    recentEntries,
-    summaryStats,
-    todayEntry,
-    todayISO,
-    refresh,
-  } = useHomeData();
+  const { loading, recentEntries, summaryStats, todayEntry, todayISO, refresh } = useHomeData();
 
   if (loading) {
     return <LoadingScreen message="Loading your journal..." />;
@@ -46,18 +39,15 @@ export default function HomeScreen() {
     <ErrorBoundary>
       <RefreshableScrollView onRefresh={refresh}>
         <WelcomeHeader hasEntryToday={!!todayEntry} />
-        
+
         <QuickActions
           todayISO={todayISO}
           hasEntryToday={!!todayEntry}
           summaryStats={summaryStats}
         />
-        
-        <RecentEntriesSection 
-          entries={recentEntries} 
-          todayISO={todayISO} 
-        />
-        
+
+        <RecentEntriesSection entries={recentEntries} todayISO={todayISO} />
+
         <StreakSection entryCount={weeklyEntryCount} />
       </RefreshableScrollView>
     </ErrorBoundary>
