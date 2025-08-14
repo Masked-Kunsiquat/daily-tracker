@@ -1,10 +1,8 @@
-// ============================================
 // components/common/Card.tsx
-// ============================================
 import React from 'react';
 import { View, ViewStyle, StyleSheet, StyleProp } from 'react-native';
-import { Colors } from '../../styles/colors';
-import { Spacing, SpacingSize } from '../../styles/spacing';
+import { Colors } from '@/styles/colors';
+import { Spacing, SpacingSize } from '@/styles/spacing';
 
 interface CardProps {
   children: React.ReactNode;

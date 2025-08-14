@@ -1,7 +1,6 @@
 // components/summaries/SummaryCard.tsx
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
-import { router } from 'expo-router';
 import { Badge, Card } from '../common';
 import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';

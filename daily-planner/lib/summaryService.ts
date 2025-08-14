@@ -1,3 +1,4 @@
+// daily-planner/lib/summaryService.ts
 import { databaseService, Summary } from './database';
 import { aiService } from './aiService';
 

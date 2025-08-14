@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { databaseService, DailyEntry } from '../lib/database';
+import { databaseService, DailyEntry } from '@/lib/database';
 
 // Import reusable components
 import {

@@ -1,16 +1,14 @@
-// ============================================
 // components/home/EntryCard.tsx
-// ============================================
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { Link } from 'expo-router';
-import { DailyEntry } from '../../lib/database';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
-import { getRatingColor } from '../../utils/ratingHelpers';
-import { formatEntryDate } from '../../utils/dateHelpers';
-import { getEntryPreview } from '../../utils/textHelpers';
+import { DailyEntry } from '@/lib/database';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
+import { getRatingColor } from '@/utils/ratingHelpers';
+import { formatEntryDate } from '@/utils/dateHelpers';
+import { getEntryPreview } from '@/utils/textHelpers';
 
 interface EntryCardProps {
   entry: DailyEntry;

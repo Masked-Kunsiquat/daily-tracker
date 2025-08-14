@@ -1,13 +1,11 @@
-// ============================================
 // components/home/RecentEntriesSection.tsx
-// ============================================
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { useRouter } from 'expo-router';
-import { DailyEntry } from '../../lib/database';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
+import { DailyEntry } from '@/lib/database';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 import { EmptyState } from '../common/EmptyState';
 import { EntryCard } from './EntryCard';
 

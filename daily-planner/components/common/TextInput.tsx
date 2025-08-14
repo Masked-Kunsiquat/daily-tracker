@@ -1,6 +1,4 @@
-// ============================================
 // components/common/TextInput.tsx
-// ============================================
 import React, { forwardRef } from 'react';
 import {
   TextInput as RNTextInput,

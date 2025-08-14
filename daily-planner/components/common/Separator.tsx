@@ -1,6 +1,4 @@
-// ============================================
 // components/common/Separator.tsx
-// ============================================
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Colors } from '@/styles/colors';

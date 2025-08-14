@@ -1,9 +1,7 @@
-// ============================================
 // components/common/RefreshableScrollView.tsx
-// ============================================
 import React, { useState, useCallback } from 'react';
 import { ScrollView, RefreshControl, ScrollViewProps, StyleSheet, ViewStyle } from 'react-native';
-import { Colors } from '../../styles/colors';
+import { Colors } from '@/styles/colors';
 
 interface RefreshableScrollViewProps extends ScrollViewProps {
   onRefresh: () => Promise<void>;

@@ -1,6 +1,4 @@
-// ============================================
 // components/common/Button.tsx
-// ============================================
 import React from 'react';
 import {
   TouchableOpacity,
@@ -12,9 +10,9 @@ import {
   TextStyle,
   TouchableOpacityProps,
 } from 'react-native';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
 export type ButtonSize = 'small' | 'medium' | 'large';

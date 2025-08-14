@@ -1,3 +1,4 @@
+// components/common/index.ts
 import { LoadingScreen } from './LoadingScreen';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Button } from './Button';

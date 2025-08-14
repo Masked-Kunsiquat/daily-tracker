@@ -1,3 +1,4 @@
+// daily-planner/lib/database.ts
 import * as SQLite from 'expo-sqlite';
 
 export interface DailyEntry {

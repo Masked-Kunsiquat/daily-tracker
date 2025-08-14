@@ -1,12 +1,10 @@
-// ============================================
 // components/daily-entry/RatingsSection.tsx
-// ============================================
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, AccessibilityActionEvent } from 'react-native';
 import { Card, Separator } from '../common';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 
 type RatingCategory = 'productivity' | 'mood' | 'energy';
 

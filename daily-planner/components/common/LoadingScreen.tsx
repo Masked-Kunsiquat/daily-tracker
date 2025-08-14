@@ -1,11 +1,9 @@
-// ============================================
 // components/common/LoadingScreen.tsx
-// ============================================
 import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 
 interface LoadingScreenProps {
   message?: string;

@@ -1,6 +1,4 @@
-// ============================================
 // components/home/QuickActions.tsx
-// ============================================
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { Link } from 'expo-router';

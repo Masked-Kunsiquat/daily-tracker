@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { Card, IconButton, Button, Badge, MarkdownRenderer } from '../common';
-import { Summary } from '../../lib/database';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
+import { Summary } from '@/lib/database';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 
 interface SummaryDetailCardProps {
   summary: Summary;

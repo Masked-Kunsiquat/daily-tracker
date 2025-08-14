@@ -1,10 +1,8 @@
-// ============================================
 // hooks/useHomeData.ts
-// ============================================
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { databaseService, DailyEntry } from '../lib/database';
-import { summaryService } from '../lib/summaryService';
-import { formatDateISO } from '../utils/dateHelpers';
+import { databaseService, DailyEntry } from '@/lib/database';
+import { summaryService } from '@/lib/summaryService';
+import { formatDateISO } from '@/utils/dateHelpers';
 
 export interface SummaryStats {
   weekly: number;

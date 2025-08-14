@@ -1,6 +1,4 @@
-// ============================================
 // components/home/WelcomeHeader.tsx
-// ============================================
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { Typography } from '@/styles/typography';

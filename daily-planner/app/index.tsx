@@ -1,4 +1,4 @@
-// app/index.tsx
+// daily-planner/app/index.tsx
 import React from 'react';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { LoadingScreen } from '@/components/common/LoadingScreen';

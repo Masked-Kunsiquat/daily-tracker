@@ -1,6 +1,4 @@
-// ============================================
 // styles/colors.ts
-// ============================================
 export const Colors = {
   // Base colors
   background: '#ffffff',
