@@ -31,6 +31,9 @@ class AIService {
   }
 
   private generateRuleBasedSummary(request: SummaryRequest): SummaryResponse {
+    // Validate request fields based on summary type
+    this.validateSummaryRequest(request);
+
     if (request.type === 'weekly' && request.entries) {
       return this.generateWeeklySummary(request.entries, request.startDate, request.endDate);
     } else if (request.type === 'monthly' && request.summaries) {
@@ -40,6 +43,31 @@ class AIService {
     }
 
     throw new Error(`Invalid summary request for type: ${request.type}`);
+  }
+
+  private validateSummaryRequest(request: SummaryRequest): void {
+    // Validate startDate and endDate for all types
+    if (!request.startDate || !request.endDate) {
+      throw new Error(`${request.type} summary requires valid startDate and endDate`);
+    }
+
+    // Validate that dates are parsable
+    const startDate = new Date(request.startDate);
+    const endDate = new Date(request.endDate);
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      throw new Error(`${request.type} summary requires valid parsable startDate and endDate`);
+    }
+
+    // Type-specific validation
+    if (request.type === 'weekly') {
+      if (!request.entries || !Array.isArray(request.entries) || request.entries.length === 0) {
+        throw new Error('weekly summary requires entries as a non-empty array');
+      }
+    } else if (request.type === 'monthly' || request.type === 'yearly') {
+      if (!request.summaries || !Array.isArray(request.summaries) || request.summaries.length === 0) {
+        throw new Error(`${request.type} summary requires summaries as a non-empty array`);
+      }
+    }
   }
 
   private generateWeeklySummary(entries: DailyEntry[], startDate: string, endDate: string): SummaryResponse {
@@ -122,7 +150,8 @@ class AIService {
     const allAccomplishments = weeklySummaries.flatMap(s => s.insights.top_accomplishments);
     const allLearnings = weeklySummaries.flatMap(s => s.insights.main_learnings);
 
-    const keyThemes = this.consolidateThemes(allThemes);
+    // Consolidate themes and enforce 10-theme limit for monthly summaries
+    const keyThemes = this.consolidateThemes(allThemes).slice(0, 10);
 
     const content = this.generateMonthlyContent(
       weeklySummaries,
@@ -173,7 +202,8 @@ class AIService {
     const allAccomplishments = monthlySummaries.flatMap(s => s.insights.top_accomplishments);
     const allLearnings = monthlySummaries.flatMap(s => s.insights.main_learnings);
 
-    const keyThemes = this.consolidateThemes(allThemes);
+    // Consolidate themes and enforce 8-theme limit for yearly summaries
+    const keyThemes = this.consolidateThemes(allThemes).slice(0, 8);
 
     const content = this.generateYearlyContent(
       monthlySummaries,
@@ -346,9 +376,9 @@ ${this.generateYearlyReflection(avgProductivity, avgMood, avgEnergy, monthCount)
       themeFreq[theme] = (themeFreq[theme] || 0) + 1;
     });
 
+    // Return consolidated themes without internal limit - caller will slice as needed
     return Object.entries(themeFreq)
       .sort(([,a], [,b]) => b - a)
-      .slice(0, 10)
       .map(([theme]) => theme);
   }
 
@@ -356,10 +386,20 @@ ${this.generateYearlyReflection(avgProductivity, avgMood, avgEnergy, monthCount)
     const start = new Date(startDate);
     const end = new Date(endDate);
     
-    if (start.getMonth() === end.getMonth()) {
-      return `${start.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - ${end.getDate()}, ${start.getFullYear()}`;
+    const startYear = start.getFullYear();
+    const endYear = end.getFullYear();
+    const startMonth = start.getMonth();
+    const endMonth = end.getMonth();
+    
+    if (startYear === endYear && startMonth === endMonth) {
+      // Same month and year: "January 1 - 7, 2024"
+      return `${start.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - ${end.getDate()}, ${startYear}`;
+    } else if (startYear === endYear) {
+      // Same year, different months: "Jan 28 - Feb 3, 2024"
+      return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${startYear}`;
     } else {
-      return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${start.getFullYear()}`;
+      // Different years: "Dec 28, 2023 - Jan 3, 2024"
+      return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
     }
   }
 
