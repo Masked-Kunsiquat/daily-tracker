@@ -1,17 +1,14 @@
-
 // ============================================
 // components/common/Card.tsx
 // ============================================
 import React from 'react';
-import { View, ViewStyle, StyleSheet } from 'react-native';
+import { View, ViewStyle, StyleSheet, StyleProp } from 'react-native';
 import { Colors } from '../../styles/colors';
-import { Spacing } from '../../styles/spacing';
-
-export type SpacingSize = keyof typeof Spacing;
+import { Spacing, SpacingSize } from '../../styles/spacing';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   padding?: SpacingSize;
   noBorder?: boolean;
 }
