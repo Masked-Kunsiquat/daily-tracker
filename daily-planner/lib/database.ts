@@ -119,25 +119,44 @@ class DatabaseService {
       // Clear old items for this entry
       await this.db.runAsync('DELETE FROM daily_entry_items WHERE entry_id = ?', [entryId]);
 
-      // Save new list items
-      const saveItems = async (items: string[], type: string) => {
-        for (const item of items) {
-          if (item.trim()) {
-            await this.db!.runAsync('INSERT INTO daily_entry_items (entry_id, type, content) VALUES (?, ?, ?)', [
-              entryId,
-              type,
-              item
-            ]);
-          }
-        }
-      };
-
-      await saveItems(entry.accomplishments, 'accomplishment');
-      await saveItems(entry.things_learned, 'learning');
-      await saveItems(entry.things_grateful, 'grateful');
+      // Batch save all list items in a single transaction
+      await this.saveItemsBatch(entryId, [
+        ...entry.accomplishments.filter(item => item.trim()).map(item => ({ type: 'accomplishment', content: item })),
+        ...entry.things_learned.filter(item => item.trim()).map(item => ({ type: 'learning', content: item })),
+        ...entry.things_grateful.filter(item => item.trim()).map(item => ({ type: 'grateful', content: item }))
+      ]);
     }
 
     return entryId;
+  }
+
+  private async saveItemsBatch(entryId: number, items: { type: string; content: string }[]): Promise<void> {
+    if (!this.db || items.length === 0) return;
+
+    try {
+      await this.db.execAsync('BEGIN TRANSACTION');
+      
+      // Prepare statement for reuse
+      const statement = await this.db.prepareAsync(
+        'INSERT INTO daily_entry_items (entry_id, type, content) VALUES (?, ?, ?)'
+      );
+
+      try {
+        // Execute prepared statement for each item
+        for (const item of items) {
+          await statement.executeAsync([entryId, item.type, item.content]);
+        }
+        
+        await this.db.execAsync('COMMIT');
+      } finally {
+        // Always finalize the prepared statement
+        await statement.finalizeAsync();
+      }
+    } catch (error) {
+      // Roll back transaction on error
+      await this.db.execAsync('ROLLBACK');
+      throw error;
+    }
   }
 
   async getDailyEntry(date: string): Promise<DailyEntry | null> {
@@ -237,9 +256,15 @@ class DatabaseService {
     const weekEndDate = new Date(weekStartDate);
     weekEndDate.setDate(weekEndDate.getDate() + 6);
     
+    // Use consistent local date handling to avoid timezone issues
+    const year = weekEndDate.getFullYear();
+    const month = String(weekEndDate.getMonth() + 1).padStart(2, '0');
+    const day = String(weekEndDate.getDate()).padStart(2, '0');
+    const weekEndDateStr = `${year}-${month}-${day}`;
+    
     return this.getDailyEntries(
       weekStartDate,
-      weekEndDate.toISOString().split('T')[0]
+      weekEndDateStr
     );
   }
 
@@ -250,6 +275,12 @@ class DatabaseService {
 
     if (!this.db) throw new Error('Database not initialized');
 
+    // Use consistent local date handling to avoid timezone issues
+    const year = monthEndDate.getFullYear();
+    const month = String(monthEndDate.getMonth() + 1).padStart(2, '0');
+    const day = String(monthEndDate.getDate()).padStart(2, '0');
+    const monthEndDateStr = `${year}-${month}-${day}`;
+
     const results = await this.db.getAllAsync(`
       SELECT * FROM summaries 
       WHERE type = 'weekly' 
@@ -258,7 +289,7 @@ class DatabaseService {
       ORDER BY start_date ASC
     `, [
       monthStartDate,
-      monthEndDate.toISOString().split('T')[0]
+      monthEndDateStr
     ]);
 
     return results.map(row => this.transformRowToSummary(row as any));
@@ -282,6 +313,15 @@ class DatabaseService {
     };
   }
 
+  private safeParseJSON(jsonString: string, fallback: any = {}, rowId?: any): any {
+    try {
+      return JSON.parse(jsonString);
+    } catch (error) {
+      console.warn(`Failed to parse JSON for row ${rowId || 'unknown'}:`, error);
+      return fallback;
+    }
+  }
+
   private transformRowToSummary(row: any): Summary {
     return {
       id: row.id,
@@ -289,7 +329,14 @@ class DatabaseService {
       start_date: row.start_date,
       end_date: row.end_date,
       content: row.content,
-      insights: JSON.parse(row.insights || '{}'),
+      insights: this.safeParseJSON(row.insights || '{}', {
+        key_themes: [],
+        productivity_trend: 0,
+        mood_trend: 0,
+        energy_trend: 0,
+        top_accomplishments: [],
+        main_learnings: [],
+      }, row.id),
       created_at: row.created_at,
     };
   }
