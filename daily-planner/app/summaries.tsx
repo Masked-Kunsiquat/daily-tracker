@@ -56,7 +56,10 @@ export default function SummariesScreen() {
   }, [loadData]);
 
   const handlePressSummary = (type: SummaryType) => {
-    router.push(`/summaries/${type}` as any);
+    router.push({
+      pathname: '/summaries/[type]',
+      params: { type },
+    });
   };
 
   const hasAnySummaries =
