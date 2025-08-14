@@ -4,7 +4,6 @@ import { Badge, Card } from '../common';
 import { Colors } from '../../styles/colors';
 import { Typography } from '../../styles/typography';
 import { Spacing } from '../../styles/spacing';
-import { Summary } from '../../lib/database';
 
 interface SummaryCardProps {
   title: string;
