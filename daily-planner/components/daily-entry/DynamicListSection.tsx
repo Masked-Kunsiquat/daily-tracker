@@ -1,6 +1,4 @@
-// ============================================
 // components/daily-entry/DynamicListSection.tsx
-// ============================================
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Card, TextInput, Button, IconButton } from '../common';
@@ -38,23 +36,43 @@ export const DynamicListSection: React.FC<DynamicListSectionProps> = ({
   // Internal state with stable IDs
   const [internalItems, setInternalItems] = useState<ListItem[]>([]);
 
-  // Convert incoming string[] to internal format on mount and when items change
+  // Reconcile incoming items with existing internal IDs to avoid remounts.
   useEffect(() => {
-    const itemsWithIds = items.map((value, index) => ({
-      id: `existing_${index}_${value.slice(0, 10)}`, // Use content snippet for some stability
-      value,
-    }));
-    setInternalItems(itemsWithIds);
+    // Build occurrence-aware map value -> [ids...] to keep duplicates stable.
+    const valueToIds = new Map<string, string[]>();
+    for (const { id, value } of internalItems) {
+      const arr = valueToIds.get(value) ?? [];
+      arr.push(id);
+      valueToIds.set(value, arr);
+    }
+
+    const reconciled: ListItem[] = items.map((value) => {
+      const arr = valueToIds.get(value);
+      if (arr && arr.length) {
+        return { id: arr.shift() as string, value };
+      }
+      return { id: generateId(), value };
+    });
+
+    const equal =
+      reconciled.length === internalItems.length &&
+      reconciled.every((it, i) => it.id === internalItems[i].id && it.value === internalItems[i].value);
+
+    if (!equal) {
+      setInternalItems(reconciled);
+    }
+    // Only react to prop changes; internalItems is read for reconciliation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
   // Sync internal changes back to parent as string[]
   const syncToParent = (newInternalItems: ListItem[]) => {
-    const stringArray = newInternalItems.map(item => item.value);
+    const stringArray = newInternalItems.map((item) => item.value);
     setItems(stringArray);
   };
 
   const handleAddItem = () => {
-    setInternalItems(prev => {
+    setInternalItems((prev) => {
       const newItems = [...prev, { id: generateId(), value: '' }];
       syncToParent(newItems);
       return newItems;
@@ -62,10 +80,8 @@ export const DynamicListSection: React.FC<DynamicListSectionProps> = ({
   };
 
   const handleUpdateItem = (id: string, value: string) => {
-    setInternalItems(prev => {
-      const newItems = prev.map(item =>
-        item.id === id ? { ...item, value } : item
-      );
+    setInternalItems((prev) => {
+      const newItems = prev.map((item) => (item.id === id ? { ...item, value } : item));
       syncToParent(newItems);
       return newItems;
     });
@@ -73,8 +89,8 @@ export const DynamicListSection: React.FC<DynamicListSectionProps> = ({
 
   const handleRemoveItem = (id: string) => {
     if (internalItems.length > 1) {
-      setInternalItems(prev => {
-        const newItems = prev.filter(item => item.id !== id);
+      setInternalItems((prev) => {
+        const newItems = prev.filter((item) => item.id !== id);
         syncToParent(newItems);
         return newItems;
       });
