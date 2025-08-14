@@ -1,3 +1,5 @@
+// daily-planner/components/summaries/SummaryCard.tsx
+
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import { Badge, Card } from '../common';
@@ -10,14 +12,37 @@ interface SummaryCardProps {
   description: string;
   count: number;
   onPress: () => void;
+  /** Optional overrides for screen reader text */
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 /**
  * A reusable card component to display a summary type with a count badge.
  */
-export const SummaryCard: React.FC<SummaryCardProps> = ({ title, description, count, onPress }) => {
+export const SummaryCard: React.FC<SummaryCardProps> = ({
+  title,
+  description,
+  count,
+  onPress,
+  accessibilityLabel,
+  accessibilityHint,
+}) => {
+  // Why: Provide meaningful defaults while allowing explicit overrides.
+  const a11yLabel =
+    accessibilityLabel ?? `${title}. ${description}. ${count} ${count === 1 ? 'item' : 'items'}.`;
+  const a11yHint = accessibilityHint ?? 'Opens details.';
+
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      // Why: Increase touch target without changing visual layout.
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      accessibilityRole="button"
+      accessibilityLabel={a11yLabel}
+      accessibilityHint={a11yHint}
+    >
       <Card style={styles.card}>
         <View style={styles.cardContent}>
           <View>
@@ -26,7 +51,15 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ title, description, co
           </View>
           <Badge label={String(count)} variant="primary" size="medium" />
         </View>
-        <Text style={styles.arrow}>›</Text>
+        {/* Why: Decorative only; must not be read by screen readers. */}
+        <Text
+          style={styles.arrow}
+          accessible={false}
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+        >
+          ›
+        </Text>
       </Card>
     </TouchableOpacity>
   );
