@@ -20,9 +20,31 @@ import { Colors } from '../styles/colors';
 import { Typography } from '../styles/typography';
 import { Spacing } from '../styles/spacing';
 
+// Helper function to safely normalize the date parameter
+const normalizeDateParam = (paramDate: string | string[] | undefined): string => {
+  // Handle array case - take first element
+  let dateValue = Array.isArray(paramDate) ? paramDate[0] : paramDate;
+  
+  // If we have a value, validate it
+  if (dateValue) {
+    // Check if it matches YYYY-MM-DD format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateRegex.test(dateValue)) {
+      // Additional validation - check if it's a valid date
+      const parsedDate = new Date(dateValue);
+      if (!isNaN(parsedDate.getTime()) && parsedDate.toISOString().split('T')[0] === dateValue) {
+        return dateValue;
+      }
+    }
+  }
+  
+  // Fallback to today's date
+  return new Date().toISOString().split('T')[0];
+};
+
 export default function DailyEntryScreen() {
   const { date: paramDate } = useLocalSearchParams();
-  const entryDate = (paramDate as string) || new Date().toISOString().split('T')[0];
+  const entryDate = normalizeDateParam(paramDate);
   
   // State
   const [loading, setLoading] = useState(true);
@@ -63,8 +85,13 @@ export default function DailyEntryScreen() {
     loadExistingEntry();
   }, [loadExistingEntry]);
   
-  // Data saving
+  // Data saving with double-submission protection
   const saveEntry = async () => {
+    // Guard against double-submission at handler level
+    if (saving) {
+      return;
+    }
+    
     setSaving(true);
     try {
       const entry: DailyEntry = {
@@ -148,6 +175,7 @@ export default function DailyEntryScreen() {
           title="Save Entry"
           onPress={saveEntry}
           loading={saving}
+          disabled={saving}
           fullWidth
           style={styles.saveButton}
         />
