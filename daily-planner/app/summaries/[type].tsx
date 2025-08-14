@@ -40,16 +40,23 @@ const SUMMARY_TYPE_CONFIG = {
 
 export default function SummaryTypeScreen() {
   const { type: paramType } = useLocalSearchParams();
-  const summaryType = paramType as SummaryType;
+  
+  // Safely normalize and validate the parameter
+  const normalizedParam = Array.isArray(paramType) ? paramType[0] : paramType;
+  const isValidSummaryType = (value: string | undefined): value is SummaryType => {
+    return value !== undefined && ['weekly', 'monthly', 'yearly'].includes(value);
+  };
+  
+  const summaryType = isValidSummaryType(normalizedParam) ? normalizedParam : null;
+  const config = summaryType ? SUMMARY_TYPE_CONFIG[summaryType] : null;
   
   const [loading, setLoading] = useState(true);
   const [summaries, setSummaries] = useState<Summary[]>([]);
   
   const mountedRef = useRef(true);
-  const config = SUMMARY_TYPE_CONFIG[summaryType];
 
   // Validate summary type
-  if (!config) {
+  if (!summaryType || !config) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Invalid summary type: {paramType}</Text>
