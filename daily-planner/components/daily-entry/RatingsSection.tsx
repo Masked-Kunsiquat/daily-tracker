@@ -2,7 +2,7 @@
 // components/daily-entry/RatingsSection.tsx
 // ============================================
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, AccessibilityActionEvent } from 'react-native';
 import { Card, Separator } from '../common';
 import { Colors } from '../../styles/colors';
 import { Typography } from '../../styles/typography';
@@ -19,21 +19,60 @@ interface RatingsSectionProps {
  * A section for users to rate different categories using stars.
  */
 export const RatingsSection: React.FC<RatingsSectionProps> = ({ ratings, setRatings }) => {
-  const renderStarRating = (category: RatingCategory) => (
-    <View style={styles.starContainer}>
-      {[1, 2, 3, 4, 5].map((star) => (
-        <TouchableOpacity
-          key={star}
-          onPress={() => setRatings({ ...ratings, [category]: star })}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.star, star <= ratings[category] ? styles.starFilled : {}]}>
-            ⭐
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
+  const updateRating = (category: RatingCategory, value: number) => {
+    setRatings(prev => ({ ...prev, [category]: value }));
+  };
+
+  const handleAccessibilityAction = (category: RatingCategory, event: AccessibilityActionEvent) => {
+    const currentRating = ratings[category];
+    
+    switch (event.nativeEvent.actionName) {
+      case 'increment':
+        if (currentRating < 5) {
+          updateRating(category, currentRating + 1);
+        }
+        break;
+      case 'decrement':
+        if (currentRating > 1) {
+          updateRating(category, currentRating - 1);
+        }
+        break;
+    }
+  };
+
+  const renderStarRating = (category: RatingCategory) => {
+    const currentRating = ratings[category];
+    const categoryLabel = category.charAt(0).toUpperCase() + category.slice(1);
+    
+    return (
+      <View style={styles.starContainer}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <TouchableOpacity
+            key={star}
+            onPress={() => updateRating(category, star)}
+            activeOpacity={0.7}
+            accessibilityRole="adjustable"
+            accessibilityLabel={`${categoryLabel} rating`}
+            accessibilityValue={{
+              min: 1,
+              max: 5,
+              now: currentRating,
+              text: `${currentRating} out of 5 stars`
+            }}
+            onAccessibilityAction={(event) => handleAccessibilityAction(category, event)}
+            accessibilityActions={[
+              { name: 'increment', label: 'Increase rating' },
+              { name: 'decrement', label: 'Decrease rating' }
+            ]}
+          >
+            <Text style={[styles.star, star <= currentRating ? styles.starFilled : {}]}>
+              ⭐
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
 
   return (
     <Card style={styles.card}>
