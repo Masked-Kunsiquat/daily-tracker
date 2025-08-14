@@ -18,7 +18,11 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   backgroundColor = Colors.borderLight,
   height = 4,
 }) => {
-  const clampedProgress = Math.min(Math.max(progress, 0), 1);
+  // Coerce to number and validate against NaN/non-finite values
+  const p = Number(progress);
+  const validProgress = Number.isFinite(p) ? p : 0;
+  
+  const clampedProgress = Math.min(Math.max(validProgress, 0), 1);
 
   return (
     <View style={[styles.container, { backgroundColor, height }]}>
