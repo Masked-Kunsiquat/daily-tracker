@@ -1,26 +1,26 @@
 // ============================================
 // components/common/IconButton.tsx
 // ============================================
-import React from 'react';
+import React from "react";
 import {
   TouchableOpacity,
   Text,
   StyleSheet,
   TouchableOpacityProps,
-} from 'react-native';
-import { Colors } from '@/styles/colors';
-import { Spacing } from '@/styles/spacing';
+} from "react-native";
+import { Colors } from "@/styles/colors";
+import { Spacing } from "@/styles/spacing";
 
 interface IconButtonProps extends TouchableOpacityProps {
   icon: string;
-  size?: 'small' | 'medium' | 'large';
+  size?: "small" | "medium" | "large";
   color?: string;
   label?: string;
 }
 
 export const IconButton: React.FC<IconButtonProps> = ({
   icon,
-  size = 'medium',
+  size = "medium",
   color = Colors.text,
   label,
   style,
@@ -30,10 +30,16 @@ export const IconButton: React.FC<IconButtonProps> = ({
   ...props
 }) => {
   // Default accessibility label: use provided label, explicit accessibilityLabel, or fallback
-  const defaultAccessibilityLabel = accessibilityLabel || label || `${icon} button`;
-  
+  const defaultAccessibilityLabel =
+    accessibilityLabel || label || `${icon} button`;
+
   // Default hit slop for better touch targets
-  const defaultHitSlop = hitSlop || { top: 10, bottom: 10, left: 10, right: 10 };
+  const defaultHitSlop = hitSlop || {
+    top: 10,
+    bottom: 10,
+    left: 10,
+    right: 10,
+  };
 
   return (
     <TouchableOpacity
@@ -51,8 +57,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 20,
   },
 });

@@ -1,10 +1,10 @@
 // components/daily-entry/DynamicListSection.tsx
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Card, TextInput, Button, IconButton } from '../common';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { Card, TextInput, Button, IconButton } from "../common";
+import { Colors } from "../../styles/colors";
+import { Typography } from "../../styles/typography";
+import { Spacing } from "../../styles/spacing";
 
 interface ListItem {
   id: string;
@@ -56,7 +56,10 @@ export const DynamicListSection: React.FC<DynamicListSectionProps> = ({
 
     const equal =
       reconciled.length === internalItems.length &&
-      reconciled.every((it, i) => it.id === internalItems[i].id && it.value === internalItems[i].value);
+      reconciled.every(
+        (it, i) =>
+          it.id === internalItems[i].id && it.value === internalItems[i].value,
+      );
 
     if (!equal) {
       setInternalItems(reconciled);
@@ -73,7 +76,7 @@ export const DynamicListSection: React.FC<DynamicListSectionProps> = ({
 
   const handleAddItem = () => {
     setInternalItems((prev) => {
-      const newItems = [...prev, { id: generateId(), value: '' }];
+      const newItems = [...prev, { id: generateId(), value: "" }];
       syncToParent(newItems);
       return newItems;
     });
@@ -81,7 +84,9 @@ export const DynamicListSection: React.FC<DynamicListSectionProps> = ({
 
   const handleUpdateItem = (id: string, value: string) => {
     setInternalItems((prev) => {
-      const newItems = prev.map((item) => (item.id === id ? { ...item, value } : item));
+      const newItems = prev.map((item) =>
+        item.id === id ? { ...item, value } : item,
+      );
       syncToParent(newItems);
       return newItems;
     });
@@ -140,8 +145,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   listItemContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: Spacing.md,
   },
   listInput: {
@@ -152,7 +157,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   addButton: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     marginTop: Spacing.xs,
   },
 });

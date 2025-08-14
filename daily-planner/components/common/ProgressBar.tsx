@@ -1,7 +1,7 @@
 // components/common/ProgressBar.tsx
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Colors } from '@/styles/colors';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { Colors } from "@/styles/colors";
 
 interface ProgressBarProps {
   progress: number; // 0 to 1
@@ -19,7 +19,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   // Coerce to number and validate against NaN/non-finite values
   const p = Number(progress);
   const validProgress = Number.isFinite(p) ? p : 0;
-  
+
   const clampedProgress = Math.min(Math.max(validProgress, 0), 1);
 
   return (
@@ -45,12 +45,12 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    width: "100%",
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progress: {
-    height: '100%',
+    height: "100%",
     borderRadius: 2,
   },
 });

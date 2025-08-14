@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { router } from 'expo-router';
-import { summaryService } from '../lib/summaryService';
-import { Summary } from '../lib/database';
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { View, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
+import { router } from "expo-router";
+import { summaryService } from "../lib/summaryService";
+import { Summary } from "../lib/database";
 import {
   RefreshableScrollView,
   Card,
   LoadingScreen,
   EmptyState,
-} from '../components/common';
-import { SummaryCard } from '../components/summaries/SummaryCard';
-import { Colors } from '../styles/colors';
-import { Typography } from '../styles/typography';
-import { Spacing } from '../styles/spacing';
+} from "../components/common";
+import { SummaryCard } from "../components/summaries/SummaryCard";
+import { Colors } from "../styles/colors";
+import { Typography } from "../styles/typography";
+import { Spacing } from "../styles/spacing";
 
-type SummaryType = 'weekly' | 'monthly' | 'yearly';
+type SummaryType = "weekly" | "monthly" | "yearly";
 
 export default function SummariesScreen() {
   const [loading, setLoading] = useState(true);
@@ -29,9 +29,9 @@ export default function SummariesScreen() {
       setLoading(true);
       await summaryService.checkAndGeneratePendingSummaries();
       const [weekly, monthly, yearly] = await Promise.all([
-        summaryService.getSummaries('weekly'),
-        summaryService.getSummaries('monthly'),
-        summaryService.getSummaries('yearly'),
+        summaryService.getSummaries("weekly"),
+        summaryService.getSummaries("monthly"),
+        summaryService.getSummaries("yearly"),
       ]);
 
       if (!mountedRef.current) return;
@@ -40,7 +40,7 @@ export default function SummariesScreen() {
       setMonthlySummaries(monthly);
       setYearlySummaries(yearly);
     } catch (error) {
-      console.error('Failed to load summaries:', error);
+      console.error("Failed to load summaries:", error);
     } finally {
       if (mountedRef.current) {
         setLoading(false);
@@ -58,15 +58,18 @@ export default function SummariesScreen() {
       mountedRef.current = false;
     };
   }, [loadData]);
-  
+
   const handlePressSummary = (type: SummaryType) => {
     // Implement navigation to a new screen to show the list of summaries
     // router.push(`/summaries/${type}`);
     console.log(`Navigating to ${type} summaries...`);
   };
 
-  const hasAnySummaries = weeklySummaries.length > 0 || monthlySummaries.length > 0 || yearlySummaries.length > 0;
-  
+  const hasAnySummaries =
+    weeklySummaries.length > 0 ||
+    monthlySummaries.length > 0 ||
+    yearlySummaries.length > 0;
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -90,19 +93,19 @@ export default function SummariesScreen() {
             title="Weekly Summaries"
             description="View your past week's insights."
             count={weeklySummaries.length}
-            onPress={() => handlePressSummary('weekly')}
+            onPress={() => handlePressSummary("weekly")}
           />
           <SummaryCard
             title="Monthly Summaries"
             description="View your past month's insights."
             count={monthlySummaries.length}
-            onPress={() => handlePressSummary('monthly')}
+            onPress={() => handlePressSummary("monthly")}
           />
           <SummaryCard
             title="Yearly Summaries"
             description="View your past year's insights."
             count={yearlySummaries.length}
-            onPress={() => handlePressSummary('yearly')}
+            onPress={() => handlePressSummary("yearly")}
           />
         </View>
       ) : (
@@ -127,7 +130,7 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   header: {
     paddingVertical: Spacing.xxxl,
-    alignItems: 'center',
+    alignItems: "center",
   } as ViewStyle,
   headerTitle: {
     fontSize: Typography.sizes.xxxl,
@@ -138,6 +141,6 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: Typography.sizes.md,
     color: Colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
   } as TextStyle,
 });
