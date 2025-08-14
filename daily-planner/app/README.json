@@ -1,0 +1,232 @@
+{
+  "version": "1.0",
+  "dir": ".",
+  "scan_at": "2025-01-14T00:00:00Z",
+  "platform": "mobile",
+  "purpose": "Expo Router app screens for daily planner",
+  
+  "entrypoints": ["_layout.tsx"],
+  
+  "files": [
+    {
+      "path": "_layout.tsx",
+      "kind": "code",
+      "lang": "tsx",
+      "size_bytes": 644,
+      "hash": {"algo": "sha256", "value": "placeholder_hash_layout"},
+      "exports": [
+        {"name": "default", "type": "component", "signature": "function RootLayout(): JSX.Element"}
+      ],
+      "imports": [
+        {"spec": "expo-router", "resolved_path": null, "kind": "external", "symbols": ["Stack"]},
+        {"spec": "expo-status-bar", "resolved_path": null, "kind": "external", "symbols": ["StatusBar"]}
+      ],
+      "components": [
+        {"name": "RootLayout", "props": [], "where_used": []}
+      ],
+      "routes": [
+        {"method": "SCREEN", "path": "index", "handler": "_layout.tsx#Stack.Screen"},
+        {"method": "SCREEN", "path": "daily-entry", "handler": "_layout.tsx#Stack.Screen"},
+        {"method": "SCREEN", "path": "summaries", "handler": "_layout.tsx#Stack.Screen"}
+      ]
+    },
+    {
+      "path": "index.tsx",
+      "kind": "code",
+      "lang": "tsx",
+      "size_bytes": 2344,
+      "hash": {"algo": "sha256", "value": "placeholder_hash_index"},
+      "exports": [
+        {"name": "default", "type": "component", "signature": "function HomeScreen(): JSX.Element"}
+      ],
+      "imports": [
+        {"spec": "react", "resolved_path": null, "kind": "external", "symbols": ["React"]},
+        {"spec": "react-native", "resolved_path": null, "kind": "external", "symbols": ["View", "StyleSheet"]},
+        {"spec": "@/components/common/ErrorBoundary", "resolved_path": null, "kind": "cross-dir", "symbols": ["ErrorBoundary"]},
+        {"spec": "@/components/common/LoadingScreen", "resolved_path": null, "kind": "cross-dir", "symbols": ["LoadingScreen"]},
+        {"spec": "@/components/common/RefreshableScrollView", "resolved_path": null, "kind": "cross-dir", "symbols": ["RefreshableScrollView"]},
+        {"spec": "@/components/home/WelcomeHeader", "resolved_path": null, "kind": "cross-dir", "symbols": ["WelcomeHeader"]},
+        {"spec": "@/components/home/QuickActions", "resolved_path": null, "kind": "cross-dir", "symbols": ["QuickActions"]},
+        {"spec": "@/components/home/RecentEntriesSection", "resolved_path": null, "kind": "cross-dir", "symbols": ["RecentEntriesSection"]},
+        {"spec": "@/components/home/StreakSection", "resolved_path": null, "kind": "cross-dir", "symbols": ["StreakSection"]},
+        {"spec": "@/hooks/useHomeData", "resolved_path": null, "kind": "cross-dir", "symbols": ["useHomeData"]},
+        {"spec": "@/styles/colors", "resolved_path": null, "kind": "cross-dir", "symbols": ["Colors"]}
+      ],
+      "components": [
+        {"name": "HomeScreen", "props": [], "where_used": []}
+      ]
+    },
+    {
+      "path": "daily-entry.tsx",
+      "kind": "code",
+      "lang": "tsx",
+      "size_bytes": 6847,
+      "hash": {"algo": "sha256", "value": "placeholder_hash_daily_entry"},
+      "exports": [
+        {"name": "default", "type": "component", "signature": "function DailyEntryScreen(): JSX.Element"}
+      ],
+      "imports": [
+        {"spec": "react", "resolved_path": null, "kind": "external", "symbols": ["React", "useState", "useEffect", "useCallback"]},
+        {"spec": "react-native", "resolved_path": null, "kind": "external", "symbols": ["View", "Text", "StyleSheet", "Alert"]},
+        {"spec": "expo-router", "resolved_path": null, "kind": "external", "symbols": ["router", "useLocalSearchParams"]},
+        {"spec": "../lib/database", "resolved_path": "../lib/database", "kind": "cross-dir", "symbols": ["databaseService", "DailyEntry"]},
+        {"spec": "../components/common", "resolved_path": "../components/common", "kind": "cross-dir", "symbols": ["RefreshableScrollView", "LoadingScreen", "Card", "TextInput", "Button"]},
+        {"spec": "../components/daily-entry/DynamicListSection", "resolved_path": "../components/daily-entry/DynamicListSection", "kind": "cross-dir", "symbols": ["DynamicListSection"]},
+        {"spec": "../components/daily-entry/RatingsSection", "resolved_path": "../components/daily-entry/RatingsSection", "kind": "cross-dir", "symbols": ["RatingsSection"]},
+        {"spec": "../styles/colors", "resolved_path": "../styles/colors", "kind": "cross-dir", "symbols": ["Colors"]},
+        {"spec": "../styles/typography", "resolved_path": "../styles/typography", "kind": "cross-dir", "symbols": ["Typography"]},
+        {"spec": "../styles/spacing", "resolved_path": "../styles/spacing", "kind": "cross-dir", "symbols": ["Spacing"]}
+      ],
+      "components": [
+        {"name": "DailyEntryScreen", "props": [], "where_used": []}
+      ],
+      "calls": [
+        {"callee": "databaseService.initialize", "target": "../lib/database", "note": "db"},
+        {"callee": "databaseService.getDailyEntry", "target": "../lib/database", "note": "db"},
+        {"callee": "databaseService.saveDailyEntry", "target": "../lib/database", "note": "db"},
+        {"callee": "router.back", "target": "expo-router", "note": "navigation"}
+      ],
+      "data_models": [
+        {"kind": "other", "name": "DailyEntry", "file": "../lib/database"}
+      ]
+    },
+    {
+      "path": "summaries.tsx",
+      "kind": "code",
+      "lang": "tsx",
+      "size_bytes": 3982,
+      "hash": {"algo": "sha256", "value": "placeholder_hash_summaries"},
+      "exports": [
+        {"name": "default", "type": "component", "signature": "function SummariesScreen(): JSX.Element"}
+      ],
+      "imports": [
+        {"spec": "react", "resolved_path": null, "kind": "external", "symbols": ["React", "useState", "useEffect", "useCallback", "useRef"]},
+        {"spec": "react-native", "resolved_path": null, "kind": "external", "symbols": ["View", "Text", "StyleSheet", "ViewStyle", "TextStyle"]},
+        {"spec": "expo-router", "resolved_path": null, "kind": "external", "symbols": ["router"]},
+        {"spec": "../lib/summaryService", "resolved_path": "../lib/summaryService", "kind": "cross-dir", "symbols": ["summaryService"]},
+        {"spec": "../lib/database", "resolved_path": "../lib/database", "kind": "cross-dir", "symbols": ["Summary"]},
+        {"spec": "../components/common", "resolved_path": "../components/common", "kind": "cross-dir", "symbols": ["RefreshableScrollView", "Card", "LoadingScreen", "EmptyState"]},
+        {"spec": "../components/summaries/SummaryCard", "resolved_path": "../components/summaries/SummaryCard", "kind": "cross-dir", "symbols": ["SummaryCard"]},
+        {"spec": "../styles/colors", "resolved_path": "../styles/colors", "kind": "cross-dir", "symbols": ["Colors"]},
+        {"spec": "../styles/typography", "resolved_path": "../styles/typography", "kind": "cross-dir", "symbols": ["Typography"]},
+        {"spec": "../styles/spacing", "resolved_path": "../styles/spacing", "kind": "cross-dir", "symbols": ["Spacing"]}
+      ],
+      "components": [
+        {"name": "SummariesScreen", "props": [], "where_used": []}
+      ],
+      "calls": [
+        {"callee": "summaryService.checkAndGeneratePendingSummaries", "target": "../lib/summaryService", "note": "other"},
+        {"callee": "summaryService.getSummaries", "target": "../lib/summaryService", "note": "other"}
+      ],
+      "data_models": [
+        {"kind": "other", "name": "Summary", "file": "../lib/database"}
+      ]
+    }
+  ],
+  
+  "edges": {
+    "internal": [],
+    "cross_dir": [
+      {"from": "index.tsx", "spec": "@/components/common/ErrorBoundary", "guess_dir": "../components/common"},
+      {"from": "index.tsx", "spec": "@/components/common/LoadingScreen", "guess_dir": "../components/common"},
+      {"from": "index.tsx", "spec": "@/components/common/RefreshableScrollView", "guess_dir": "../components/common"},
+      {"from": "index.tsx", "spec": "@/components/home/WelcomeHeader", "guess_dir": "../components/home"},
+      {"from": "index.tsx", "spec": "@/components/home/QuickActions", "guess_dir": "../components/home"},
+      {"from": "index.tsx", "spec": "@/components/home/RecentEntriesSection", "guess_dir": "../components/home"},
+      {"from": "index.tsx", "spec": "@/components/home/StreakSection", "guess_dir": "../components/home"},
+      {"from": "index.tsx", "spec": "@/hooks/useHomeData", "guess_dir": "../hooks"},
+      {"from": "index.tsx", "spec": "@/styles/colors", "guess_dir": "../styles"},
+      {"from": "daily-entry.tsx", "spec": "../lib/database", "guess_dir": "../lib"},
+      {"from": "daily-entry.tsx", "spec": "../components/common", "guess_dir": "../components/common"},
+      {"from": "daily-entry.tsx", "spec": "../components/daily-entry/DynamicListSection", "guess_dir": "../components/daily-entry"},
+      {"from": "daily-entry.tsx", "spec": "../components/daily-entry/RatingsSection", "guess_dir": "../components/daily-entry"},
+      {"from": "daily-entry.tsx", "spec": "../styles/colors", "guess_dir": "../styles"},
+      {"from": "daily-entry.tsx", "spec": "../styles/typography", "guess_dir": "../styles"},
+      {"from": "daily-entry.tsx", "spec": "../styles/spacing", "guess_dir": "../styles"},
+      {"from": "summaries.tsx", "spec": "../lib/summaryService", "guess_dir": "../lib"},
+      {"from": "summaries.tsx", "spec": "../lib/database", "guess_dir": "../lib"},
+      {"from": "summaries.tsx", "spec": "../components/common", "guess_dir": "../components/common"},
+      {"from": "summaries.tsx", "spec": "../components/summaries/SummaryCard", "guess_dir": "../components/summaries"},
+      {"from": "summaries.tsx", "spec": "../styles/colors", "guess_dir": "../styles"},
+      {"from": "summaries.tsx", "spec": "../styles/typography", "guess_dir": "../styles"},
+      {"from": "summaries.tsx", "spec": "../styles/spacing", "guess_dir": "../styles"}
+    ],
+    "external": [
+      {"from": "_layout.tsx", "package": "expo-router"},
+      {"from": "_layout.tsx", "package": "expo-status-bar"},
+      {"from": "index.tsx", "package": "react"},
+      {"from": "index.tsx", "package": "react-native"},
+      {"from": "daily-entry.tsx", "package": "react"},
+      {"from": "daily-entry.tsx", "package": "react-native"},
+      {"from": "daily-entry.tsx", "package": "expo-router"},
+      {"from": "summaries.tsx", "package": "react"},
+      {"from": "summaries.tsx", "package": "react-native"},
+      {"from": "summaries.tsx", "package": "expo-router"}
+    ]
+  },
+  
+  "external_deps": [
+    "react",
+    "react-native",
+    "expo-router",
+    "expo-status-bar"
+  ],
+  
+  "env": [],
+  
+  "data": {
+    "schemas": [
+      {"kind": "other", "name": "DailyEntry", "file": "../lib/database"},
+      {"kind": "other", "name": "Summary", "file": "../lib/database"}
+    ],
+    "tables": [],
+    "storage": ["other"]
+  },
+  
+  "conventions_inferred": {
+    "naming": {
+      "files": "kebab",
+      "components": "PascalCase",
+      "tests": null
+    },
+    "errors": {
+      "pattern": "throw",
+      "types": ["Alert"]
+    },
+    "logging": {
+      "lib": "console",
+      "pattern": "printf"
+    },
+    "testing": {
+      "locations": [],
+      "tools": []
+    }
+  },
+  
+  "build_run": {
+    "runtime": {
+      "node": null,
+      "other": ["expo", "react-native"]
+    },
+    "scripts": [],
+    "configs": []
+  },
+  
+  "resolution_notes": [
+    "@ alias unresolved; likely tsconfig paths or babel-plugin-module-resolver",
+    "../ relative imports resolved to parent directory structure"
+  ],
+  
+  "evidence": [
+    "_layout.tsx",
+    "index.tsx",
+    "daily-entry.tsx",
+    "summaries.tsx"
+  ],
+  
+  "sampled": false,
+  "todos": [
+    "tsconfig/babel config needed to resolve @ alias imports",
+    "package.json scripts not available in this directory"
+  ]
+}

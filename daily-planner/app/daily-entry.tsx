@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+// daily-planner/app/daily-entry.tsx
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { databaseService, DailyEntry } from '../lib/database';
@@ -20,6 +21,9 @@ import { Colors } from '../styles/colors';
 import { Typography } from '../styles/typography';
 import { Spacing } from '../styles/spacing';
 
+// Local date helper (returns local YYYY-MM-DD)
+import { formatDateISO } from '../utils/dateHelpers';
+
 // Helper function to safely normalize the date parameter
 const normalizeDateParam = (paramDate: string | string[] | undefined): string => {
   // Handle array case - take first element
@@ -30,21 +34,36 @@ const normalizeDateParam = (paramDate: string | string[] | undefined): string =>
     // Check if it matches YYYY-MM-DD format
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (dateRegex.test(dateValue)) {
-      // Additional validation - check if it's a valid date
-      const parsedDate = new Date(dateValue);
-      if (!isNaN(parsedDate.getTime()) && parsedDate.toISOString().split('T')[0] === dateValue) {
+      // Additional validation - ensure it's a valid calendar date
+      const [y, m, d] = dateValue.split('-').map(Number);
+      const test = new Date(y, (m || 1) - 1, d || 1);
+      if (
+        !isNaN(test.getTime()) &&
+        test.getFullYear() === y &&
+        test.getMonth() === (m - 1) &&
+        test.getDate() === d
+      ) {
         return dateValue;
       }
     }
   }
   
-  // Fallback to today's date
-  return new Date().toISOString().split('T')[0];
+  // Fallback to today's LOCAL date (avoid UTC off-by-one)
+  return formatDateISO();
 };
 
 export default function DailyEntryScreen() {
   const { date: paramDate } = useLocalSearchParams();
   const entryDate = normalizeDateParam(paramDate);
+
+  // Track mount status to avoid setState on unmounted component
+  const mountedRef = useRef<boolean>(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false; // prevent state updates after unmount
+    };
+  }, []);
   
   // State
   const [loading, setLoading] = useState(true);
@@ -65,19 +84,25 @@ export default function DailyEntryScreen() {
       await databaseService.initialize();
       const existingEntry = await databaseService.getDailyEntry(entryDate);
       
-      if (existingEntry) {
+      if (existingEntry && mountedRef.current) {
         setDailyText(existingEntry.daily_text);
         // Ensure lists are not empty for the UI
-        setAccomplishments(existingEntry.accomplishments.length > 0 ? existingEntry.accomplishments : ['']);
-        setThingsLearned(existingEntry.things_learned.length > 0 ? existingEntry.things_learned : ['']);
-        setThingsGrateful(existingEntry.things_grateful.length > 0 ? existingEntry.things_grateful : ['']);
+        setAccomplishments(
+          existingEntry.accomplishments.length > 0 ? existingEntry.accomplishments : ['']
+        );
+        setThingsLearned(
+          existingEntry.things_learned.length > 0 ? existingEntry.things_learned : ['']
+        );
+        setThingsGrateful(
+          existingEntry.things_grateful.length > 0 ? existingEntry.things_grateful : ['']
+        );
         setRatings(existingEntry.ratings);
       }
     } catch (error) {
       console.error('Error loading existing entry:', error);
       Alert.alert('Error', 'Failed to load existing entry');
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, [entryDate]);
   
@@ -92,7 +117,7 @@ export default function DailyEntryScreen() {
       return;
     }
     
-    setSaving(true);
+    if (mountedRef.current) setSaving(true);
     try {
       const entry: DailyEntry = {
         date: entryDate,
@@ -112,7 +137,7 @@ export default function DailyEntryScreen() {
       console.error('Error saving entry:', error);
       Alert.alert('Error', 'Failed to save entry. Please try again.');
     } finally {
-      setSaving(false);
+      if (mountedRef.current) setSaving(false);
     }
   };
 
@@ -121,7 +146,9 @@ export default function DailyEntryScreen() {
     return <LoadingScreen message="Loading entry..." />;
   }
 
-  const formattedDate = new Date(entryDate).toLocaleDateString('en-US', {
+  // Parse entryDate as local date to avoid UTC shift
+  const [y, m, d] = entryDate.split('-').map(Number);
+  const formattedDate = new Date(y, m - 1, d).toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
