@@ -1,6 +1,5 @@
 // app/index.tsx
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import { RefreshableScrollView } from '@/components/common/RefreshableScrollView';
@@ -9,7 +8,6 @@ import { QuickActions } from '@/components/home/QuickActions';
 import { RecentEntriesSection } from '@/components/home/RecentEntriesSection';
 import { StreakSection } from '@/components/home/StreakSection';
 import { useHomeData } from '@/hooks/useHomeData';
-import { Colors } from '@/styles/colors';
 import type { DailyEntry } from '@/lib/database';
 
 // Helper function to calculate entries for current week
@@ -52,10 +50,3 @@ export default function HomeScreen() {
     </ErrorBoundary>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-});
