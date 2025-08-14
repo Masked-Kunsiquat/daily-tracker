@@ -56,6 +56,7 @@ export default function SummaryTypeScreen() {
   const mountedRef = useRef(true);
 
   const loadSummaries = useCallback(async () => {
+    // Guard against invalid summary types - don't call service or change state
     if (!summaryType) return;
     
     try {
@@ -76,7 +77,8 @@ export default function SummaryTypeScreen() {
         Alert.alert('Error', `Failed to load ${summaryType} summaries`);
       }
     } finally {
-      if (mountedRef.current) {
+      // Only toggle loading state if we have a valid summaryType
+      if (summaryType && mountedRef.current) {
         setLoading(false);
       }
     }
