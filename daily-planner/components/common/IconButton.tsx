@@ -15,19 +15,33 @@ interface IconButtonProps extends TouchableOpacityProps {
   icon: string;
   size?: 'small' | 'medium' | 'large';
   color?: string;
+  label?: string;
 }
 
 export const IconButton: React.FC<IconButtonProps> = ({
   icon,
   size = 'medium',
   color = Colors.text,
+  label,
   style,
+  accessibilityLabel,
+  accessibilityRole,
+  hitSlop,
   ...props
 }) => {
+  // Default accessibility label: use provided label, explicit accessibilityLabel, or fallback
+  const defaultAccessibilityLabel = accessibilityLabel || label || `${icon} button`;
+  
+  // Default hit slop for better touch targets
+  const defaultHitSlop = hitSlop || { top: 10, bottom: 10, left: 10, right: 10 };
+
   return (
     <TouchableOpacity
       style={[styles.container, sizeStyles[size], style]}
       activeOpacity={0.7}
+      accessibilityRole={accessibilityRole || "button"}
+      accessibilityLabel={defaultAccessibilityLabel}
+      hitSlop={defaultHitSlop}
       {...props}
     >
       <Text style={[iconSizeStyles[size], { color }]}>{icon}</Text>
