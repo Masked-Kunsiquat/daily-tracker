@@ -128,22 +128,34 @@ export class SummaryService {
    * @param date - Local ISO date (YYYY-MM-DD). Interpretation depends on `type`.
    * @returns The saved {@link Summary} or `null` if generation preconditions aren’t met.
    */
-  async forceSummaryGeneration(
-    type: 'weekly' | 'monthly' | 'yearly',
-    date: string,
-  ): Promise<Summary | null> {
-    switch (type) {
-      case 'weekly':
-        return this.generateWeeklySummary(normalizeWeeklyForceDate(date));
-      case 'monthly':
-        return this.generateMonthlySummary(normalizeMonthlyForceDate(date));
-      case 'yearly': {
-        const year = normalizeYearlyForceDate(date);
-        return this.generateYearlySummary(year);
+async forceSummaryGeneration(
+  type: 'weekly' | 'monthly' | 'yearly',
+  date: string,
+): Promise<Summary | null> {
+  switch (type) {
+    case 'weekly':
+      return this.generateWeeklySummary(normalizeWeeklyForceDate(date));
+    case 'monthly':
+      return this.generateMonthlySummary(normalizeMonthlyForceDate(date));
+    case 'yearly': {
+      let year: number;
+      try {
+        year = normalizeYearlyForceDate(date);
+      } catch (err) {
+        console.warn(`forceSummaryGeneration(yearly): invalid date "${date}"`, err);
+        return null;
       }
-      default:
-        throw new Error(`Invalid summary type: ${type}`);
+
+      if (!Number.isFinite(year) || Number.isNaN(year) || !Number.isInteger(year)) {
+        console.warn(`forceSummaryGeneration(yearly): invalid year "${year}" from date "${date}"`);
+        return null;
+      }
+
+      return this.generateYearlySummary(year);
     }
+    default:
+      throw new Error(`Invalid summary type: ${type}`);
+  }
   }
 }
 
