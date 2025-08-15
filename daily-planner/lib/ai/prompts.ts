@@ -67,7 +67,9 @@ Please respond in JSON format with the structure:
  * @returns Placeholder string until the real prompt is authored.
  */
 export function getMonthlySummaryPrompt(_summaries: Summary[]): string {
-  return `Monthly prompt TBD`;
+  throw new Error(
+    'getMonthlySummaryPrompt: prompt is unimplemented. Replace this stub with the real monthly prompt.'
+  );
 }
 
 /**
@@ -81,5 +83,7 @@ export function getMonthlySummaryPrompt(_summaries: Summary[]): string {
  * @returns Placeholder string until the real prompt is authored.
  */
 export function getYearlySummaryPrompt(_summaries: Summary[]): string {
-  return `Yearly prompt TBD`;
+  throw new Error(
+    'getYearlySummaryPrompt: prompt is unimplemented. Replace this stub with the real yearly prompt.'
+  );
 }
