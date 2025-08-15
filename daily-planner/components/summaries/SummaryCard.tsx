@@ -7,20 +7,32 @@ import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
 
+/**
+ * Props for {@link SummaryCard}.
+ */
 interface SummaryCardProps {
+  /** Section title (e.g., "Weekly Summary"). */
   title: string;
+  /** Short description of what this summary contains. */
   description: string;
+  /** Count badge value. Typically the number of summaries available. */
   count: number;
+  /** Summary route segment to open when pressed. */
   summaryType: 'weekly' | 'monthly' | 'yearly';
-  /** Optional custom onPress handler - if not provided, navigates to summary type screen */
+  /** Optional custom press handler; if omitted, navigates to `/summaries/[type]`. */
   onPress?: () => void;
-  /** Optional overrides for screen reader text */
+  /** Optional screen-reader label override. */
   accessibilityLabel?: string;
+  /** Optional screen-reader hint override. */
   accessibilityHint?: string;
 }
 
 /**
- * A reusable card component to display a summary type with a count badge.
+ * SummaryCard
+ *
+ * Reusable card showing a summary type with a count badge.
+ * - Pressing navigates to `/summaries/[type]` unless a custom `onPress` is provided.
+ * - Includes accessible label/hint with sensible defaults.
  */
 export const SummaryCard: React.FC<SummaryCardProps> = ({
   title,
@@ -31,11 +43,11 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   accessibilityLabel,
   accessibilityHint,
 }) => {
+  /** Navigate to the typed summary route unless a custom handler is provided. */
   const handlePress = () => {
     if (onPress) {
       onPress();
     } else {
-      // Why: Use typed navigation with explicit pathname and params for Expo Router.
       router.push({
         pathname: '/summaries/[type]',
         params: { type: summaryType },
@@ -43,7 +55,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
     }
   };
 
-  // Why: Provide meaningful defaults while allowing explicit overrides.
+  /** Provide meaningful SR defaults while allowing explicit overrides. */
   const a11yLabel =
     accessibilityLabel ?? `${title}. ${description}. ${count} ${count === 1 ? 'item' : 'items'}.`;
   const a11yHint = accessibilityHint ?? 'Opens details.';
@@ -52,11 +64,11 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
     <TouchableOpacity
       onPress={handlePress}
       activeOpacity={0.8}
-      // Why: Increase touch target without changing visual layout.
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       accessibilityRole="button"
       accessibilityLabel={a11yLabel}
-      accessibilityHint={a11yHint}>
+      accessibilityHint={a11yHint}
+    >
       <Card style={styles.card}>
         <View style={styles.cardContent}>
           <View>
@@ -65,12 +77,13 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
           </View>
           <Badge label={String(count)} variant="primary" size="medium" />
         </View>
-        {/* Why: Decorative only; must not be read by screen readers. */}
+        {/* Decorative arrow; hidden from screen readers */}
         <Text
           style={styles.arrow}
           accessible={false}
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants">
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
           ›
         </Text>
       </Card>

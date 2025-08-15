@@ -3,13 +3,30 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Colors } from '@/styles/colors';
 
+/**
+ * Props for {@link ProgressBar}.
+ */
 interface ProgressBarProps {
-  progress: number; // 0 to 1
+  /**
+   * Progress value from 0 to 1.
+   * Non-finite values are coerced to 0; value is clamped to [0, 1].
+   */
+  progress: number;
+  /** Foreground bar color; defaults to theme primary. */
   color?: string;
+  /** Track/background color; defaults to a light border color. */
   backgroundColor?: string;
+  /** Height of the bar in pixels; defaults to 4. */
   height?: number;
 }
 
+/**
+ * ProgressBar
+ *
+ * Simple, themeable horizontal progress indicator.
+ * - Clamps progress to [0, 1]
+ * - Exposes proper accessibility semantics (`role="progressbar"` with {min, max, now})
+ */
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   progress,
   color = Colors.primary,
@@ -25,10 +42,11 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   return (
     <View
       // Expose progress semantics for screen readers (0..1 scale)
-      accessible={true}
+      accessible
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 1, now: clampedProgress }}
-      style={[styles.container, { backgroundColor, height }]}>
+      style={[styles.container, { backgroundColor, height }]}
+    >
       <View
         style={[
           styles.progress,

@@ -3,13 +3,35 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, TouchableOpacityProps } from 'react-native';
 import { Colors } from '@/styles/colors';
 
+/**
+ * Props for {@link IconButton}.
+ * Extends {@link TouchableOpacityProps} so you can pass any standard touchable props.
+ */
 interface IconButtonProps extends TouchableOpacityProps {
+  /** Emoji or glyph string to render (e.g., '✏️', '🔍'). */
   icon: string;
+  /** Control the button and icon size; defaults to `'medium'`. */
   size?: 'small' | 'medium' | 'large';
+  /** Icon color; defaults to theme text color. */
   color?: string;
+  /** Optional visible label for context (not rendered automatically). */
   label?: string;
 }
 
+/**
+ * IconButton
+ *
+ * A minimal, circular touch target that renders a single emoji/glyph as its icon.
+ *
+ * Behavior & Accessibility:
+ * - Defaults `accessibilityRole` to `'button'`.
+ * - Uses `accessibilityLabel` if provided; otherwise falls back to `label` or
+ *   a generated label like `"<icon> button"`.
+ * - Applies a default `hitSlop` (10px each side) to meet tap target guidelines.
+ *
+ * Notes:
+ * - This component only renders the icon; if you need a visible text label, place it alongside.
+ */
 export const IconButton: React.FC<IconButtonProps> = ({
   icon,
   size = 'medium',
@@ -45,6 +67,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
   );
 };
 
+/** Base container—kept circular and centered. */
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
@@ -53,6 +76,7 @@ const styles = StyleSheet.create({
   },
 });
 
+/** Button dimensions by size. */
 const sizeStyles = StyleSheet.create({
   small: {
     width: 32,
@@ -68,6 +92,7 @@ const sizeStyles = StyleSheet.create({
   },
 });
 
+/** Icon font sizes by size. */
 const iconSizeStyles = StyleSheet.create({
   small: {
     fontSize: 16,

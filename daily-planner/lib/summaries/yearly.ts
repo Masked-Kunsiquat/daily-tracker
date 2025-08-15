@@ -1,7 +1,24 @@
+// daily-planner/lib/summaries/yearly.ts
 import { databaseService, Summary } from '../database';
 import { aiService } from '../aiService';
 import { formatDateISO } from '@/utils/dateHelpers';
 
+/**
+ * Generate a yearly summary for the given `year`.
+ *
+ * Behavior:
+ * - Determines the local start/end of the year (`YYYY-01-01` .. `YYYY-12-31`).
+ * - Collects all **monthly** summaries fully contained within that window.
+ * - If none are found, returns `null` (nothing to summarize).
+ * - Otherwise, asks the AI service to aggregate the monthly summaries into a
+ *   single yearly narrative + insights, persists it, and returns the saved record.
+ *
+ * Notes:
+ * - Date math is done in local time. `formatDateISO` produces local-ISO dates.
+ *
+ * @param year - Four-digit year (e.g., 2025).
+ * @returns The saved yearly {@link Summary} or `null` when no monthly summaries exist.
+ */
 export async function generateYearlySummary(year: number): Promise<Summary | null> {
   const yearStartDate = `${year}-01-01`;
   const yearEndLocal = new Date(year, 12, 0); // Dec 31 (local)
@@ -37,6 +54,17 @@ export async function generateYearlySummary(year: number): Promise<Summary | nul
   return summary;
 }
 
+/**
+ * Generate any **missing** yearly summaries for recent past years.
+ *
+ * Strategy:
+ * - Consider the two most recent *completed/ongoing* years: `currentYear - 2` and `currentYear - 1`.
+ * - Skip years that already have a yearly summary (by `start_date`).
+ * - Only generate if there are at least **6 monthly summaries** for that year
+ *   (quality threshold to avoid thin yearlies).
+ *
+ * @returns Resolves when the check/generation process completes.
+ */
 export async function generatePendingYearlySummaries(): Promise<void> {
   const currentYear = new Date().getFullYear();
   const existingYearlies = await databaseService.getSummaries('yearly');
@@ -58,7 +86,16 @@ export async function generatePendingYearlySummaries(): Promise<void> {
   }
 }
 
-// Extract the year part safely (default to NaN if invalid)
+/**
+ * Normalize any local-ISO date string to a **year number**.
+ *
+ * Example:
+ * - `"2025-08-14"` → `2025`
+ * - `"invalid"` → `NaN`
+ *
+ * @param date - Local ISO date string (YYYY-MM-DD).
+ * @returns Parsed year as a number, or `NaN` if the input is invalid.
+ */
 export function normalizeYearlyForceDate(date: string): number {
   return parseInt(date.split('-')[0], 10);
 }

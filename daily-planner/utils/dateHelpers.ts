@@ -1,7 +1,4 @@
-// ============================================
 // utils/dateHelpers.ts
-// (Consolidated: strict parsing + range + friendly labels)
-// ============================================
 
 /**
  * Regex for strict local ISO dates: YYYY-MM-DD

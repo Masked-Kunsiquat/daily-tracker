@@ -10,8 +10,14 @@ import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
 import { formatDateISO } from '@/utils/dateHelpers';
+
+/** Supported summary route segment. */
 type SummaryType = 'weekly' | 'monthly' | 'yearly';
 
+/**
+ * Copy and a11y strings per summary type.
+ * Keep user-facing language short and scannable.
+ */
 const SUMMARY_TYPE_CONFIG = {
   weekly: {
     title: 'Weekly Summaries',
@@ -34,8 +40,23 @@ const SUMMARY_TYPE_CONFIG = {
       'No yearly summaries yet. You need at least 6 monthly summaries in a year to generate a yearly summary.',
     icon: '📈',
   },
-};
+} as const;
 
+/**
+ * SummaryTypeScreen
+ *
+ * Route: `/summaries/[type]`
+ *
+ * Responsibilities:
+ * - Validate `type` URL param and map to config
+ * - Backfill any missing summaries (weekly/monthly/yearly) before fetching
+ * - Render list of {@link SummaryDetailCard}s for the chosen type
+ * - Provide pull-to-refresh, share, and "Try Generate" (force) actions
+ *
+ * Safety:
+ * - Uses `mountedRef` to avoid state updates after unmount
+ * - Catches and surfaces errors via `Alert` while logging to console
+ */
 export default function SummaryTypeScreen() {
   const { type: paramType } = useLocalSearchParams();
 
@@ -51,8 +72,14 @@ export default function SummaryTypeScreen() {
   const [loading, setLoading] = useState(true);
   const [summaries, setSummaries] = useState<Summary[]>([]);
 
+  /** Prevent setState calls after unmount. */
   const mountedRef = useRef(true);
 
+  /**
+   * Fetch summaries for the current type.
+   * - First triggers pending-generation checks
+   * - Then loads and stores the list for this type
+   */
   const loadSummaries = useCallback(async () => {
     // Guard against invalid summary types - don't call service or change state
     if (!summaryType) return;
@@ -82,10 +109,15 @@ export default function SummaryTypeScreen() {
     }
   }, [summaryType]);
 
+  /** Pull-to-refresh handler (wraps `loadSummaries`). */
   const onRefresh = useCallback(async () => {
     await loadSummaries();
   }, [loadSummaries]);
 
+  /**
+   * Share a single summary using the OS share sheet.
+   * Includes the title, date range, and the summary content.
+   */
   const handleShareSummary = useCallback(
     async (summary: Summary) => {
       if (!config) return;
@@ -107,6 +139,14 @@ export default function SummaryTypeScreen() {
     [config?.title],
   );
 
+  /**
+   * Force-generate a summary for the **previous** period:
+   * - Weekly: last completed week (last Monday)
+   * - Monthly: first day of last month
+   * - Yearly: first day of last year
+   *
+   * Useful when the user has enough source data but the auto backfill hasn't run yet.
+   */
   const handleForceGenerate = useCallback(async () => {
     // Guard against invalid summary types
     if (!summaryType || !['weekly', 'monthly', 'yearly'].includes(summaryType)) {
@@ -180,7 +220,8 @@ export default function SummaryTypeScreen() {
     <RefreshableScrollView
       style={styles.container}
       onRefresh={onRefresh}
-      contentContainerStyle={styles.scrollContent}>
+      contentContainerStyle={styles.scrollContent}
+    >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
           {config.icon} {config.title}
@@ -212,14 +253,17 @@ export default function SummaryTypeScreen() {
 }
 
 const styles = StyleSheet.create({
+  /** Screen background and base layout. */
   container: {
     flex: 1,
     backgroundColor: Colors.background,
   },
+  /** Scroll content padding. */
   scrollContent: {
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xxxl,
   },
+  /** Header block with title + description. */
   header: {
     paddingVertical: Spacing.xxl,
     alignItems: 'center',
@@ -236,9 +280,11 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
   },
+  /** Container for the list of summary cards. */
   summariesContainer: {
     gap: Spacing.lg,
   },
+  /** Error fallback when the route param is invalid. */
   errorContainer: {
     flex: 1,
     justifyContent: 'center',

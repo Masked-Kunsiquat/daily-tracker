@@ -9,22 +9,43 @@ import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
 
+/**
+ * Props for {@link SummaryDetailCard}.
+ */
 interface SummaryDetailCardProps {
+  /** Summary domain model containing content and computed insights. */
   summary: Summary;
+  /** Callback to invoke when the user chooses to share the summary. */
   onShare: () => void;
 }
 
+/**
+ * SummaryDetailCard
+ *
+ * Rich summary card with:
+ * - Date range header (and created-at when available)
+ * - Insights section (trend badges and up to 5 key themes)
+ * - Markdown-rendered content with "Show more" + "Full View" modal
+ * - Share controls in both card and modal
+ *
+ * Accessibility:
+ * - Uses readable text sizes; modal presents full content for long summaries.
+ */
 export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({ summary, onShare }) => {
   const [showFullContent, setShowFullContent] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Human-friendly date span (e.g., "Aug 1–7, 2025")
   const dateRange = formatDateRange(summary.start_date, summary.end_date);
+
+  // Preview first 300 chars; toggle expands inline; modal shows full content.
   const contentPreview = summary.content.substring(0, 300);
   const isLongContent = summary.content.length > 300;
 
   return (
     <>
       <Card style={styles.card}>
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.titleContainer}>
             <Text style={styles.dateRange}>{dateRange}</Text>
@@ -41,6 +62,7 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({ summary, o
         <View style={styles.insights}>
           <Text style={styles.insightsTitle}>Key Insights</Text>
 
+          {/* 1–5 trend badges colored via getRatingColor */}
           <View style={styles.ratings}>
             <View style={styles.ratingItem}>
               <Text style={styles.ratingLabel}>Productivity</Text>
@@ -48,7 +70,8 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({ summary, o
                 style={[
                   styles.ratingBadge,
                   { backgroundColor: getRatingColor(summary.insights.productivity_trend) },
-                ]}>
+                ]}
+              >
                 <Text style={styles.ratingValue}>
                   {summary.insights.productivity_trend.toFixed(1)}
                 </Text>
@@ -61,7 +84,8 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({ summary, o
                 style={[
                   styles.ratingBadge,
                   { backgroundColor: getRatingColor(summary.insights.mood_trend) },
-                ]}>
+                ]}
+              >
                 <Text style={styles.ratingValue}>{summary.insights.mood_trend.toFixed(1)}</Text>
               </View>
             </View>
@@ -72,12 +96,14 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({ summary, o
                 style={[
                   styles.ratingBadge,
                   { backgroundColor: getRatingColor(summary.insights.energy_trend) },
-                ]}>
+                ]}
+              >
                 <Text style={styles.ratingValue}>{summary.insights.energy_trend.toFixed(1)}</Text>
               </View>
             </View>
           </View>
 
+          {/* Up to 5 key themes as neutral badges */}
           {summary.insights.key_themes.length > 0 && (
             <View style={styles.themes}>
               <Text style={styles.themesTitle}>Key Themes</Text>
@@ -90,7 +116,7 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({ summary, o
           )}
         </View>
 
-        {/* Content Preview */}
+        {/* Content Preview / Inline Expand */}
         <View style={styles.content}>
           <Text style={styles.contentTitle}>Summary</Text>
 
@@ -103,15 +129,14 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({ summary, o
             <View style={styles.contentActions}>
               <TouchableOpacity
                 onPress={() => setIsExpanded(!isExpanded)}
-                style={styles.expandButton}>
+                style={styles.expandButton}
+              >
                 <Text style={styles.expandButtonText}>
                   {isExpanded ? 'Show Less' : 'Show More'}
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => setShowFullContent(true)}
-                style={styles.fullViewButton}>
+              <TouchableOpacity onPress={() => setShowFullContent(true)} style={styles.fullViewButton}>
                 <Text style={styles.fullViewButtonText}>Full View</Text>
               </TouchableOpacity>
             </View>
@@ -141,11 +166,7 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({ summary, o
               variant="outline"
               style={styles.modalShareButton}
             />
-            <Button
-              title="Close"
-              onPress={() => setShowFullContent(false)}
-              style={styles.modalCloseButton}
-            />
+            <Button title="Close" onPress={() => setShowFullContent(false)} style={styles.modalCloseButton} />
           </View>
         </View>
       </Modal>

@@ -11,12 +11,30 @@ import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
 
+/**
+ * Props for {@link TextInput}.
+ * Extends React Native's {@link RNTextInputProps}, so all standard input props
+ * (e.g., `value`, `onChangeText`, `keyboardType`) are supported.
+ */
 interface TextInputProps extends RNTextInputProps {
+  /** Optional label rendered above the input. */
   label?: string;
+  /** Error message shown below the input (takes precedence over `helper`). */
   error?: string;
+  /** Helper/caption text shown when there is no `error`. */
   helper?: string;
 }
 
+/**
+ * TextInput
+ *
+ * A themed input with optional label, helper text, and error state.
+ * - If `error` is provided, the border color changes and the error message is shown.
+ * - If no `error`, an optional `helper` message can provide guidance.
+ * - For accessibility, provide `accessibilityLabel` when `label` is not visible.
+ *
+ * This component forwards its ref to the underlying `RNTextInput`.
+ */
 export const TextInput = forwardRef<RNTextInput, TextInputProps>(
   ({ label, error, helper, style, ...props }, ref) => {
     return (
