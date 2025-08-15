@@ -87,15 +87,30 @@ export async function generatePendingYearlySummaries(): Promise<void> {
 }
 
 /**
- * Normalize any local-ISO date string to a **year number**.
+ * Normalize a local-ISO date string to a **year number**.
+ * Accepts only "YYYY" or "YYYY-MM-DD".
+ * Throws on invalid/malformed input to prevent ambiguous years or NaN.
  *
- * Example:
- * - `"2025-08-14"` → `2025`
- * - `"invalid"` → `NaN`
- *
- * @param date - Local ISO date string (YYYY-MM-DD).
- * @returns Parsed year as a number, or `NaN` if the input is invalid.
+ * @param date - Local ISO date string.
+ * @returns Four-digit year as a number.
+ * @throws Error when input is not "YYYY" or "YYYY-MM-DD".
  */
 export function normalizeYearlyForceDate(date: string): number {
-  return parseInt(date.split('-')[0], 10);
+  if (typeof date !== 'string') {
+    throw new Error(
+      `normalizeYearlyForceDate: expected a string, received ${typeof date}`
+    );
+  }
+
+  // Strict: allow "YYYY" or "YYYY-MM-DD" only (reject "YYYY-MM")
+  const pattern = /^(?:\d{4}|\d{4}-\d{2}-\d{2})$/;
+
+  if (!pattern.test(date)) {
+    throw new Error(
+      `normalizeYearlyForceDate: invalid input "${date}". Expected "YYYY" or "YYYY-MM-DD".`
+    );
+  }
+
+  return Number(date.slice(0, 4));
 }
+
