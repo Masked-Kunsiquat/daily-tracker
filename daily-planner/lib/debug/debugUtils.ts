@@ -12,13 +12,15 @@ export interface PerformanceMetrics {
 
 class DebugManager {
   private metrics: Map<string, PerformanceMetrics> = new Map();
-  private isDebugMode: boolean = __DEV__ || process.env.DEBUG_INFERENCE === 'true';
-
+  private isDebugMode: boolean = (() => {
+    const envDebug = (globalThis as any)?.process?.env?.DEBUG_INFERENCE;
+    return __DEV__ || envDebug === 'true';
+  })();
   startTimer(key: string, step: string): void {
     if (!this.isDebugMode) return;
     
     this.metrics.set(key, {
-      startTime: performance.now(),
+      startTime: this.now(),
       step,
       memoryBefore: this.getMemoryUsage()
     });
@@ -32,7 +34,7 @@ class DebugManager {
     const metric = this.metrics.get(key);
     if (!metric) return null;
 
-    const endTime = performance.now();
+    const endTime = this.now();
     const duration = endTime - metric.startTime;
     const memoryAfter = this.getMemoryUsage();
 
@@ -57,6 +59,15 @@ class DebugManager {
       );
     }
     return updatedMetric;
+  }
+
+  /** Safe high-resolution time getter */
+  private now(): number {
+    const perf = (globalThis as any)?.performance;
+    if (perf && typeof perf.now === 'function') {
+      return perf.now();
+    }
+    return Date.now();
   }
 
   logInferenceStep(step: string, data?: any): void {
