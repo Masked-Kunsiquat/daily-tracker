@@ -72,7 +72,7 @@ export class InferenceService {
         ? this.mapToModelId('t5-small')
         : this.mapToModelId('smallest');
 
-    const targetModel: ModelId = opts.modelId ?? thresholdModel ?? recommendedModelId;
+    const targetModel: ModelId = opts.modelId ?? recommendedModelId ?? thresholdModel;
     this.modelId = targetModel;
 
     await this.ensureOrtLoaded();
