@@ -1,13 +1,13 @@
 // daily-planner/components/common/MarkdownRenderer.tsx
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
 
 interface MarkdownRendererProps {
   content: string;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 }
 
 interface ParsedElement {
@@ -144,7 +144,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    gap: Spacing.sm,
   },
   heading1: {
     fontSize: Typography.sizes.xl,
