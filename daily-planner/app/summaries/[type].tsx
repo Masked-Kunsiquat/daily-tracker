@@ -14,7 +14,7 @@ import { SummaryDetailCard } from '@/components/summaries/SummaryDetailCard';
 import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
-
+import { formatDateISO } from '@/utils/dateHelpers'; 
 type SummaryType = 'weekly' | 'monthly' | 'yearly';
 
 const SUMMARY_TYPE_CONFIG = {
@@ -119,21 +119,23 @@ export default function SummaryTypeScreen() {
       // For demo purposes, try to force generate a summary for current period
       const now = new Date();
       let dateStr: string;
-      
+
       if (summaryType === 'weekly') {
-        // Get last Monday
-        const dayOfWeek = now.getDay();
-        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        const monday = new Date(now);
-        monday.setDate(monday.getDate() + mondayOffset - 7); // Previous week
-        dateStr = monday.toISOString().split('T')[0];
+        // Last Monday (previous week), computed from local midnight
+        const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const dow = todayLocal.getDay(); // 0=Sun,1=Mon,...
+        const mondayOffset = dow === 0 ? -6 : 1 - dow;
+        const lastMonday = new Date(todayLocal);
+        lastMonday.setDate(lastMonday.getDate() + mondayOffset - 7); // previous week
+        dateStr = formatDateISO(lastMonday);
       } else if (summaryType === 'monthly') {
-        // Get first day of last month
-        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        dateStr = lastMonth.toISOString().split('T')[0];
+        // First day of last month (local)
+        const firstOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        dateStr = formatDateISO(firstOfLastMonth);
       } else {
-        // Get first day of last year
-        dateStr = `${now.getFullYear() - 1}-01-01`;
+        // First day of last year (local)
+        const firstOfLastYear = new Date(now.getFullYear() - 1, 0, 1);
+        dateStr = formatDateISO(firstOfLastYear);
       }
       
       await summaryService.forceSummaryGeneration(summaryType, dateStr);
