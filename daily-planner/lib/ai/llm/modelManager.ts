@@ -190,6 +190,40 @@ export class ModelManager {
 
     const verified = opts.skipVerify ? true : await this.verifyModel(modelId);
 
+    if (!verified) {
+      // Verification failed: remove corrupt file and emit error
+      try {
+        await FileSystem.deleteAsync(destUri, { idempotent: true });
+      } catch {}
+
+      // Best-effort: if a non-shared parent directory is now empty, remove it
+      try {
+        const lastSlash = destUri.lastIndexOf('/') + 1;
+        const parentDir = destUri.slice(0, lastSlash);
+        const { modelDir } = getDirs();
+        if (parentDir !== modelDir) {
+          const contents = await FileSystem.readDirectoryAsync(parentDir);
+          if (contents.length === 0) {
+            await FileSystem.deleteAsync(parentDir, { idempotent: true });
+          }
+        }
+      } catch {
+        // ignore cleanup failures
+      }
+
+      // Progress: error state (cast to any in case DownloadProgress has a strict union)
+      (opts.onProgress as any)?.({
+        totalBytes: spec.sizeMB * 1024 * 1024,
+        receivedBytes: spec.sizeMB * 1024 * 1024,
+        pct: 0,
+        state: 'error',
+        error: `Verification failed for ${modelId}`,
+      } as any);
+
+      throw new LLMError('VERIFY_FAILED', `Hash verification failed for ${modelId}`);
+    }
+
+    // Only mark done after a successful verify
     opts.onProgress?.({
       totalBytes: spec.sizeMB * 1024 * 1024,
       receivedBytes: spec.sizeMB * 1024 * 1024,
