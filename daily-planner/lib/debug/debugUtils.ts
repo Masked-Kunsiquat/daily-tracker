@@ -47,11 +47,15 @@ class DebugManager {
     
     console.log(`✅ [DEBUG] Completed ${metric.step} - ${key}`);
     console.log(`   Duration: ${duration.toFixed(2)}ms`);
-    if (metric.memoryBefore && memoryAfter) {
+    if (
+      metric.memoryBefore !== undefined && metric.memoryBefore !== null &&
+      memoryAfter !== undefined && memoryAfter !== null
+    ) {
       const memoryDelta = memoryAfter - metric.memoryBefore;
-      console.log(`   Memory: ${memoryDelta > 0 ? '+' : ''}${memoryDelta.toFixed(2)}MB`);
+      console.log(
+        `   Memory: ${memoryDelta > 0 ? '+' : ''}${memoryDelta.toFixed(2)}MB`
+      );
     }
-
     return updatedMetric;
   }
 
