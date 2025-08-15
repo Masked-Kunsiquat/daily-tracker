@@ -1,0 +1,37 @@
+// .vscode/launch.json - VS Code debugging configuration
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug iOS",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/@expo/cli/build/bin/cli",
+      "args": ["start", "--ios"],
+      "console": "integratedTerminal",
+      "env": {
+        "EXPO_DEBUG": "true",
+        "DEBUG_INFERENCE": "true"
+      }
+    },
+    {
+      "name": "Debug Android", 
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/@expo/cli/build/bin/cli",
+      "args": ["start", "--android"],
+      "console": "integratedTerminal",
+      "env": {
+        "EXPO_DEBUG": "true",
+        "DEBUG_INFERENCE": "true"
+      }
+    },
+    {
+      "name": "Attach to Metro",
+      "type": "node",
+      "request": "attach",
+      "port": 8081,
+      "timeout": 30000
+    }
+  ]
+}
