@@ -19,26 +19,29 @@ import { parseLocalISODate, formatDateISO } from '@/utils/dateHelpers';
  * @returns The saved weekly {@link Summary}, or `null` if no entries exist for the week.
  */
 export async function generateWeeklySummary(weekStartDate: string): Promise<Summary | null> {
-  const entries = await databaseService.getEntriesForWeeklySummary(weekStartDate);
+  // Canonicalize once
+  const canonicalDate = formatDateISO(parseLocalISODate(weekStartDate));
+
+  const entries = await databaseService.getEntriesForWeeklySummary(canonicalDate);
   if (entries.length === 0) {
-    console.log('No entries found for week starting:', weekStartDate);
+    console.log('No entries found for week starting:', canonicalDate);
     return null;
   }
 
-  const start = parseLocalISODate(weekStartDate);
+  const start = parseLocalISODate(canonicalDate);
   const weekEndLocal = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
   const weekEndISO = formatDateISO(weekEndLocal);
 
   const summaryResponse = await aiService.generateSummary({
     type: 'weekly',
     entries,
-    startDate: weekStartDate,
+    startDate: canonicalDate,
     endDate: weekEndISO,
   });
 
   const summary: Summary = {
     type: 'weekly',
-    start_date: weekStartDate,
+    start_date: canonicalDate,
     end_date: weekEndISO,
     content: summaryResponse.content,
     insights: summaryResponse.insights,
@@ -71,7 +74,10 @@ export async function generatePendingWeeklySummaries(): Promise<void> {
   );
 
   const existingSummaries = await databaseService.getSummaries('weekly');
-  const existingStarts = new Set(existingSummaries.map((s) => s.start_date));
+  // Canonicalize existing start dates to ensure consistent comparisons
+  const existingStarts = new Set(
+    existingSummaries.map((s) => formatDateISO(parseLocalISODate(s.start_date))),
+  );
 
   for (let i = 0; i < 4; i++) {
     // Step back i weeks from the last completed week
@@ -85,7 +91,7 @@ export async function generatePendingWeeklySummaries(): Promise<void> {
     const dow = pivot.getDay();
     const mondayOffset = dow === 0 ? -6 : 1 - dow;
     const monday = new Date(pivot.getFullYear(), pivot.getMonth(), pivot.getDate() + mondayOffset);
-    const mondayISO = formatDateISO(monday);
+    const mondayISO = formatDateISO(monday); // canonical
 
     if (!existingStarts.has(mondayISO)) {
       const entries = await databaseService.getEntriesForWeeklySummary(mondayISO);
@@ -100,11 +106,11 @@ export async function generatePendingWeeklySummaries(): Promise<void> {
  * Normalize any date to the canonical weekly **start** used by generators.
  *
  * Current policy:
- * - We already require callers to pass a Monday (local); thus this is a pass-through.
+ * - We already require callers to pass a Monday (local); thus this canonicalizes format only.
  *
  * @param date - Local ISO date (YYYY-MM-DD), expected to be a Monday.
- * @returns The same date string.
+ * @returns Canonicalized local ISO date (YYYY-MM-DD).
  */
 export function normalizeWeeklyForceDate(date: string): string {
-  return date;
+  return formatDateISO(parseLocalISODate(date));
 }
