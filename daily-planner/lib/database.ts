@@ -1,5 +1,6 @@
 // daily-planner/lib/database.ts
 import * as SQLite from 'expo-sqlite';
+import { parseLocalISODate, formatDateISO} from '@/utils/dateHelpers';
 
 export interface DailyEntry {
   id?: number;
@@ -99,7 +100,10 @@ class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_daily_entries_date ON daily_entries(date);
       CREATE INDEX IF NOT EXISTS idx_daily_entry_items_entry_id ON daily_entry_items(entry_id);
       CREATE INDEX IF NOT EXISTS idx_summaries_type_date ON summaries(type, start_date, end_date);
-    `);
+      -- Prevent duplicate summaries for the same period/type
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_summaries_unique ON summaries(type, start_date);
+
+      `);
   }
 
   async saveDailyEntry(entry: DailyEntry): Promise<number> {
@@ -268,33 +272,19 @@ class DatabaseService {
   }
 
   async getEntriesForWeeklySummary(weekStartDate: string): Promise<DailyEntry[]> {
-    const weekEndDate = new Date(weekStartDate);
-    weekEndDate.setDate(weekEndDate.getDate() + 6);
-    
-    // Use consistent local date handling to avoid timezone issues
-    const year = weekEndDate.getFullYear();
-    const month = String(weekEndDate.getMonth() + 1).padStart(2, '0');
-    const day = String(weekEndDate.getDate()).padStart(2, '0');
-    const weekEndDateStr = `${year}-${month}-${day}`;
-    
-    return this.getDailyEntries(
-      weekStartDate,
-      weekEndDateStr
-    );
+    // Local-safe: base on local midnight and format via helper
+    const start = parseLocalISODate(weekStartDate);
+    const weekEndLocal = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+    const weekEndDateStr = formatDateISO(weekEndLocal);
+    return this.getDailyEntries(weekStartDate, weekEndDateStr);
   }
 
   async getWeeklySummariesForMonth(monthStartDate: string): Promise<Summary[]> {
-    const monthEndDate = new Date(monthStartDate);
-    monthEndDate.setMonth(monthEndDate.getMonth() + 1);
-    monthEndDate.setDate(0); // Last day of the month
-
     if (!this.db) throw new Error('Database not initialized');
-
-    // Use consistent local date handling to avoid timezone issues
-    const year = monthEndDate.getFullYear();
-    const month = String(monthEndDate.getMonth() + 1).padStart(2, '0');
-    const day = String(monthEndDate.getDate()).padStart(2, '0');
-    const monthEndDateStr = `${year}-${month}-${day}`;
+    // Local-safe end of month
+    const start = parseLocalISODate(monthStartDate);
+    const monthEndLocal = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+    const monthEndDateStr = formatDateISO(monthEndLocal);
 
     const results = await this.db.getAllAsync(`
       SELECT * FROM summaries 
