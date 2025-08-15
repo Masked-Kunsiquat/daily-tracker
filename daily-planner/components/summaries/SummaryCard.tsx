@@ -35,8 +35,11 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
     if (onPress) {
       onPress();
     } else {
-      // Default navigation to summary type detail screen
-      router.push(`/summaries/${summaryType}` as any);
+      // Why: Use typed navigation with explicit pathname and params for Expo Router.
+      router.push({
+        pathname: '/summaries/[type]',
+        params: { type: summaryType },
+      });
     }
   };
 
