@@ -48,3 +48,8 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+
+now i need you to create an MD codeblock (idc about the length - or if *I* can even understand it). 
+I need you to summarize this entire chat, significant/minor changes, functions we created, how they work, interact..
+basically everything we'd need to pick this up in another chat to begin the next phase
