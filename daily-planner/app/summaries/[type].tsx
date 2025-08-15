@@ -4,70 +4,68 @@ import { View, Text, StyleSheet, Alert, Share } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { summaryService } from '@/lib/summaryService';
 import { Summary } from '@/lib/database';
-import { 
-  RefreshableScrollView, 
-  LoadingScreen, 
-  EmptyState, 
-  Button 
-} from '@/components/common';
+import { RefreshableScrollView, LoadingScreen, EmptyState, Button } from '@/components/common';
 import { SummaryDetailCard } from '@/components/summaries/SummaryDetailCard';
 import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
-import { formatDateISO } from '@/utils/dateHelpers'; 
+import { formatDateISO } from '@/utils/dateHelpers';
 type SummaryType = 'weekly' | 'monthly' | 'yearly';
 
 const SUMMARY_TYPE_CONFIG = {
   weekly: {
     title: 'Weekly Summaries',
     description: 'Your week in review',
-    emptyMessage: 'No weekly summaries yet. Keep logging daily entries for at least 3 days in a week to generate your first weekly summary!',
-    icon: '📅'
+    emptyMessage:
+      'No weekly summaries yet. Keep logging daily entries for at least 3 days in a week to generate your first weekly summary!',
+    icon: '📅',
   },
   monthly: {
-    title: 'Monthly Summaries', 
+    title: 'Monthly Summaries',
     description: 'Your month in review',
-    emptyMessage: 'No monthly summaries yet. You need at least 2 weekly summaries in a month to generate a monthly summary.',
-    icon: '🗓️'
+    emptyMessage:
+      'No monthly summaries yet. You need at least 2 weekly summaries in a month to generate a monthly summary.',
+    icon: '🗓️',
   },
   yearly: {
     title: 'Yearly Summaries',
-    description: 'Your year in review', 
-    emptyMessage: 'No yearly summaries yet. You need at least 6 monthly summaries in a year to generate a yearly summary.',
-    icon: '📈'
-  }
+    description: 'Your year in review',
+    emptyMessage:
+      'No yearly summaries yet. You need at least 6 monthly summaries in a year to generate a yearly summary.',
+    icon: '📈',
+  },
 };
 
 export default function SummaryTypeScreen() {
   const { type: paramType } = useLocalSearchParams();
-  
+
   // Safely normalize and validate the parameter
   const normalizedParam = Array.isArray(paramType) ? paramType[0] : paramType;
   const isValidSummaryType = (value: string | undefined): value is SummaryType => {
     return value !== undefined && ['weekly', 'monthly', 'yearly'].includes(value);
   };
-  
+
   const summaryType = isValidSummaryType(normalizedParam) ? normalizedParam : null;
   const config = summaryType ? SUMMARY_TYPE_CONFIG[summaryType] : null;
-  
+
   const [loading, setLoading] = useState(true);
   const [summaries, setSummaries] = useState<Summary[]>([]);
-  
+
   const mountedRef = useRef(true);
 
   const loadSummaries = useCallback(async () => {
     // Guard against invalid summary types - don't call service or change state
     if (!summaryType) return;
-    
+
     try {
       setLoading(true);
-      
+
       // Check and generate any pending summaries first
       await summaryService.checkAndGeneratePendingSummaries();
-      
+
       // Then fetch the summaries for this type
       const data = await summaryService.getSummaries(summaryType);
-      
+
       if (mountedRef.current) {
         setSummaries(data);
       }
@@ -88,23 +86,26 @@ export default function SummaryTypeScreen() {
     await loadSummaries();
   }, [loadSummaries]);
 
-  const handleShareSummary = useCallback(async (summary: Summary) => {
-    if (!config) return;
-    
-    try {
-      const title = config?.title ?? 'Daily Planner';
-      const dateRange = `${summary.start_date} to ${summary.end_date}`;
-      const shareContent = `${title} - ${dateRange}\n\n${summary.content}`;
-      
-      await Share.share({
-        message: shareContent,
-        title: `${title} - ${dateRange}`,
-      });
-    } catch (error) {
-      console.error('Error sharing summary:', error);
-      Alert.alert('Error', 'Failed to share summary');
-    }
-  }, [config?.title]);
+  const handleShareSummary = useCallback(
+    async (summary: Summary) => {
+      if (!config) return;
+
+      try {
+        const title = config?.title ?? 'Daily Planner';
+        const dateRange = `${summary.start_date} to ${summary.end_date}`;
+        const shareContent = `${title} - ${dateRange}\n\n${summary.content}`;
+
+        await Share.share({
+          message: shareContent,
+          title: `${title} - ${dateRange}`,
+        });
+      } catch (error) {
+        console.error('Error sharing summary:', error);
+        Alert.alert('Error', 'Failed to share summary');
+      }
+    },
+    [config?.title],
+  );
 
   const handleForceGenerate = useCallback(async () => {
     // Guard against invalid summary types
@@ -112,10 +113,10 @@ export default function SummaryTypeScreen() {
       Alert.alert('Error', 'Invalid summary type. Cannot generate summary.');
       return;
     }
-    
+
     try {
       setLoading(true);
-      
+
       // For demo purposes, try to force generate a summary for current period
       const now = new Date();
       let dateStr: string;
@@ -137,14 +138,17 @@ export default function SummaryTypeScreen() {
         const firstOfLastYear = new Date(now.getFullYear() - 1, 0, 1);
         dateStr = formatDateISO(firstOfLastYear);
       }
-      
+
       await summaryService.forceSummaryGeneration(summaryType, dateStr);
       await loadSummaries();
-      
+
       Alert.alert('Success', 'Summary generated successfully!');
     } catch (error) {
       console.error('Error force generating summary:', error);
-      Alert.alert('Note', 'Could not generate summary. You may need more entries or existing summaries for the selected period.');
+      Alert.alert(
+        'Note',
+        'Could not generate summary. You may need more entries or existing summaries for the selected period.',
+      );
     } finally {
       // Always reset loading state
       setLoading(false);
@@ -173,13 +177,14 @@ export default function SummaryTypeScreen() {
   }
 
   return (
-    <RefreshableScrollView 
+    <RefreshableScrollView
       style={styles.container}
       onRefresh={onRefresh}
-      contentContainerStyle={styles.scrollContent}
-    >
+      contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{config.icon} {config.title}</Text>
+        <Text style={styles.headerTitle}>
+          {config.icon} {config.title}
+        </Text>
         <Text style={styles.headerSubtitle}>{config.description}</Text>
       </View>
 

@@ -56,8 +56,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       accessibilityRole="button"
       accessibilityLabel={a11yLabel}
-      accessibilityHint={a11yHint}
-    >
+      accessibilityHint={a11yHint}>
       <Card style={styles.card}>
         <View style={styles.cardContent}>
           <View>
@@ -71,8 +70,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
           style={styles.arrow}
           accessible={false}
           accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-        >
+          importantForAccessibility="no-hide-descendants">
           ›
         </Text>
       </Card>

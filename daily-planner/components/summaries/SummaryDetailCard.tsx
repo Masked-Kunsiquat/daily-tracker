@@ -14,10 +14,7 @@ interface SummaryDetailCardProps {
   onShare: () => void;
 }
 
-export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({
-  summary,
-  onShare,
-}) => {
+export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({ summary, onShare }) => {
   const [showFullContent, setShowFullContent] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -37,52 +34,46 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({
               </Text>
             )}
           </View>
-          <IconButton
-            icon="📤"
-            onPress={onShare}
-            size="small"
-            label="Share summary"
-          />
+          <IconButton icon="📤" onPress={onShare} size="small" label="Share summary" />
         </View>
 
         {/* Insights Summary */}
         <View style={styles.insights}>
           <Text style={styles.insightsTitle}>Key Insights</Text>
-          
+
           <View style={styles.ratings}>
             <View style={styles.ratingItem}>
               <Text style={styles.ratingLabel}>Productivity</Text>
-              <View style={[
-                styles.ratingBadge, 
-                { backgroundColor: getRatingColor(summary.insights.productivity_trend) }
-              ]}>
+              <View
+                style={[
+                  styles.ratingBadge,
+                  { backgroundColor: getRatingColor(summary.insights.productivity_trend) },
+                ]}>
                 <Text style={styles.ratingValue}>
                   {summary.insights.productivity_trend.toFixed(1)}
                 </Text>
               </View>
             </View>
-            
+
             <View style={styles.ratingItem}>
               <Text style={styles.ratingLabel}>Mood</Text>
-              <View style={[
-                styles.ratingBadge, 
-                { backgroundColor: getRatingColor(summary.insights.mood_trend) }
-              ]}>
-                <Text style={styles.ratingValue}>
-                  {summary.insights.mood_trend.toFixed(1)}
-                </Text>
+              <View
+                style={[
+                  styles.ratingBadge,
+                  { backgroundColor: getRatingColor(summary.insights.mood_trend) },
+                ]}>
+                <Text style={styles.ratingValue}>{summary.insights.mood_trend.toFixed(1)}</Text>
               </View>
             </View>
-            
+
             <View style={styles.ratingItem}>
               <Text style={styles.ratingLabel}>Energy</Text>
-              <View style={[
-                styles.ratingBadge, 
-                { backgroundColor: getRatingColor(summary.insights.energy_trend) }
-              ]}>
-                <Text style={styles.ratingValue}>
-                  {summary.insights.energy_trend.toFixed(1)}
-                </Text>
+              <View
+                style={[
+                  styles.ratingBadge,
+                  { backgroundColor: getRatingColor(summary.insights.energy_trend) },
+                ]}>
+                <Text style={styles.ratingValue}>{summary.insights.energy_trend.toFixed(1)}</Text>
               </View>
             </View>
           </View>
@@ -92,12 +83,7 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({
               <Text style={styles.themesTitle}>Key Themes</Text>
               <View style={styles.themesContainer}>
                 {summary.insights.key_themes.slice(0, 5).map((theme, index) => (
-                  <Badge
-                    key={index}
-                    label={theme}
-                    variant="neutral"
-                    size="small"
-                  />
+                  <Badge key={index} label={theme} variant="neutral" size="small" />
                 ))}
               </View>
             </View>
@@ -107,8 +93,8 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({
         {/* Content Preview */}
         <View style={styles.content}>
           <Text style={styles.contentTitle}>Summary</Text>
-          
-          <MarkdownRenderer 
+
+          <MarkdownRenderer
             content={isExpanded ? summary.content : contentPreview}
             style={styles.markdownContent}
           />
@@ -117,17 +103,15 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({
             <View style={styles.contentActions}>
               <TouchableOpacity
                 onPress={() => setIsExpanded(!isExpanded)}
-                style={styles.expandButton}
-              >
+                style={styles.expandButton}>
                 <Text style={styles.expandButtonText}>
                   {isExpanded ? 'Show Less' : 'Show More'}
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 onPress={() => setShowFullContent(true)}
-                style={styles.fullViewButton}
-              >
+                style={styles.fullViewButton}>
                 <Text style={styles.fullViewButtonText}>Full View</Text>
               </TouchableOpacity>
             </View>
@@ -136,31 +120,17 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({
       </Card>
 
       {/* Full Content Modal */}
-      <Modal
-        visible={showFullContent}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
+      <Modal visible={showFullContent} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modal}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{dateRange}</Text>
-            <IconButton
-              icon="✕"
-              onPress={() => setShowFullContent(false)}
-              size="medium"
-            />
+            <IconButton icon="✕" onPress={() => setShowFullContent(false)} size="medium" />
           </View>
-          
-          <ScrollView 
-            style={styles.modalContent}
-            contentContainerStyle={styles.modalScrollContent}
-          >
-            <MarkdownRenderer 
-              content={summary.content}
-              style={styles.markdownContent}
-            />
+
+          <ScrollView style={styles.modalContent} contentContainerStyle={styles.modalScrollContent}>
+            <MarkdownRenderer content={summary.content} style={styles.markdownContent} />
           </ScrollView>
-          
+
           <View style={styles.modalFooter}>
             <Button
               title="Share"

@@ -63,7 +63,7 @@ const parseMarkdown = (content: string): ParsedElement[] => {
 const renderInlineFormatting = (text: string, key: string): React.JSX.Element => {
   // Handle inline bold text **text**
   const parts = text.split(/(\*\*[^*]+\*\*)/);
-  
+
   return (
     <Text key={key} style={styles.paragraph}>
       {parts.map((part, index) => {
@@ -80,17 +80,14 @@ const renderInlineFormatting = (text: string, key: string): React.JSX.Element =>
   );
 };
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
-  content,
-  style,
-}) => {
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, style }) => {
   const elements = parseMarkdown(content);
 
   return (
     <View style={[styles.container, style]}>
       {elements.map((element, index) => {
         const key = `element-${index}`;
-        
+
         switch (element.type) {
           case 'heading1':
             return (
@@ -98,28 +95,28 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 {element.content}
               </Text>
             );
-            
+
           case 'heading2':
             return (
               <Text key={key} style={styles.heading2}>
                 {element.content}
               </Text>
             );
-            
+
           case 'heading3':
             return (
               <Text key={key} style={styles.heading3}>
                 {element.content}
               </Text>
             );
-            
+
           case 'bold':
             return (
               <Text key={key} style={styles.bold}>
                 {element.content}
               </Text>
             );
-            
+
           case 'bullet':
             return (
               <View key={key} style={styles.bulletContainer}>
@@ -127,13 +124,13 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 <Text style={styles.bulletText}>{element.content}</Text>
               </View>
             );
-            
+
           case 'spacing':
             return <View key={key} style={styles.spacing} />;
-            
+
           case 'paragraph':
             return renderInlineFormatting(element.content || '', key);
-            
+
           default:
             return null;
         }
@@ -143,8 +140,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-  },
+  container: {},
   heading1: {
     fontSize: Typography.sizes.xl,
     fontWeight: Typography.weights.bold,
