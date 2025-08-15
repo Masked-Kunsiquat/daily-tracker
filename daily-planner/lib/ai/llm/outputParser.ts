@@ -11,18 +11,27 @@ export type StructuredSummary = {
 export class OutputParser {
   /** Extract JSON substring (handles fenced and unfenced) */
   static parseJSON(output: string): unknown {
-    const fenced = output.match(/```(?:json)?\n([\s\S]*?)\n```/i);
+    const fenced = output.match(/```(?:json)?\r?\n([\s\S]*?)\r?\n```/i);
     if (fenced?.[1]) {
       try { return JSON.parse(fenced[1]); } catch {}
     }
-    // Fallback: first {...} block
-    const firstBrace = output.indexOf('{');
-    const lastBrace = output.lastIndexOf('}');
-    if (firstBrace >= 0 && lastBrace > firstBrace) {
-      const candidate = output.slice(firstBrace, lastBrace + 1);
-      try { return JSON.parse(candidate); } catch {}
+    // Fallback: first balanced {...} block via brace counting
+    const start = output.indexOf('{');
+    if (start >= 0) {
+      let depth = 0;
+      for (let i = start; i < output.length; i++) {
+        const ch = output[i];
+        if (ch === '{') depth++;
+        else if (ch === '}') {
+          depth--;
+          if (depth === 0) {
+            const candidate = output.slice(start, i + 1);
+            try { return JSON.parse(candidate); } catch {}
+            break; // stop after first balanced block
+          }
+        }
+      }
     }
-    throw new Error('No JSON found in model output');
   }
 
   /** Simple runtime schema validation */
@@ -40,11 +49,21 @@ export class OutputParser {
 
   /** Remove problematic content; conservative sanitization */
   static sanitizeContent<T extends StructuredSummary>(obj: T): T {
-    const scrub = (s: string) =>
-      s
-        .replace(/[\u200B-\u200D\uFEFF]/g, '') // zero-width
-        .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F]/g, '') // ctrl
-        .trim();
+    const scrub = (s: string) => {
+      // Remove zero-width chars first
+      const noZW = s.replace(/[\u200B-\u200D\uFEFF]/g, '');
+      // Drop control chars (0–31) except Tab(9), LF(10), CR(13)
+      let out = '';
+      for (let i = 0; i < noZW.length; i++) {
+        const ch = noZW.charAt(i);
+        const code = ch.charCodeAt(0);
+        if (code >= 0 && code <= 31 && code !== 9 && code !== 10 && code !== 13) {
+          continue;
+        }
+        out += ch;
+      }
+      return out.trim();
+    };
 
     return {
       ...obj,
