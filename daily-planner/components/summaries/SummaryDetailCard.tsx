@@ -36,9 +36,11 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({
         <View style={styles.header}>
           <View style={styles.titleContainer}>
             <Text style={styles.dateRange}>{dateRange}</Text>
-            <Text style={styles.createdAt}>
-              Created {new Date(summary.created_at || '').toLocaleDateString()}
-            </Text>
+            {Boolean(summary.created_at) && !isNaN(Date.parse(summary.created_at)) && (
+              <Text style={styles.createdAt}>
+                Created {new Date(summary.created_at).toLocaleDateString()}
+              </Text>
+            )}
           </View>
           <IconButton
             icon="📤"
