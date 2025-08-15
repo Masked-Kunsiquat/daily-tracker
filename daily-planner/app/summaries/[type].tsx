@@ -10,9 +10,7 @@ import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
 import { formatDateISO } from '@/utils/dateHelpers';
-
-/** Supported summary route segment. */
-type SummaryType = 'weekly' | 'monthly' | 'yearly';
+import { SummaryType } from '@/lib/ai/llm/types';
 
 /**
  * Copy and a11y strings per summary type.

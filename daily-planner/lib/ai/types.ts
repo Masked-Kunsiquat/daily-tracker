@@ -1,11 +1,6 @@
 // lib/ai/types.ts
 import type { DailyEntry, Summary } from '../database';
-
-/**
- * Supported summary granularities.
- */
-export type SummaryType = 'weekly' | 'monthly' | 'yearly';
-
+import type { SummaryType } from './llm/types';
 /**
  * Structured input for generating a summary.
  *

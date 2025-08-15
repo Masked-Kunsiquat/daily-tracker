@@ -6,6 +6,7 @@ import { Badge, Card } from '../common';
 import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
+import { SummaryType } from '@/lib/ai/llm/types';
 
 /**
  * Props for {@link SummaryCard}.
@@ -18,7 +19,7 @@ interface SummaryCardProps {
   /** Count badge value. Typically the number of summaries available. */
   count: number;
   /** Summary route segment to open when pressed. */
-  summaryType: 'weekly' | 'monthly' | 'yearly';
+  summaryType: SummaryType;
   /** Optional custom press handler; if omitted, navigates to `/summaries/[type]`. */
   onPress?: () => void;
   /** Optional screen-reader label override. */

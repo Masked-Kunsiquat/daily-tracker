@@ -1,6 +1,6 @@
 // daily-planner/lib/ai/llm/promptBuilder.ts
 
-export type SummaryType = 'weekly' | 'monthly' | 'yearly';
+export type { SummaryType } from './types';
 
 export interface JournalEntry { id: string; dateISO: string; content: string }
 
