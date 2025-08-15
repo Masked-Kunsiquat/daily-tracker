@@ -1,23 +1,40 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { summaryService } from '../lib/summaryService';
-import { Summary } from '../lib/database';
-import { RefreshableScrollView, LoadingScreen, EmptyState } from '../components/common';
-import { SummaryCard } from '../components/summaries/SummaryCard';
-import { Colors } from '../styles/colors';
-import { Typography } from '../styles/typography';
-import { Spacing } from '../styles/spacing';
+import { summaryService } from '@/lib/summaryService';
+import { Summary } from '@/lib/database';
+import { RefreshableScrollView, LoadingScreen, EmptyState } from '@/components/common';
+import { SummaryCard } from '@/components/summaries/SummaryCard';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 
-type SummaryType = 'weekly' | 'monthly' | 'yearly';
-
+/**
+ * SummariesScreen
+ *
+ * Hub for AI-generated summaries:
+ * - Triggers background generation for missing weekly/monthly/yearly summaries
+ * - Fetches and displays counts with quick navigation cards
+ * - Pull-to-refresh re-runs the full load
+ *
+ * Safety:
+ * - Uses `mountedRef` to avoid setState after unmount
+ * - Swallows errors into console; UI falls back to EmptyState when nothing is available
+ */
 export default function SummariesScreen() {
   const [loading, setLoading] = useState(true);
   const [weeklySummaries, setWeeklySummaries] = useState<Summary[]>([]);
   const [monthlySummaries, setMonthlySummaries] = useState<Summary[]>([]);
   const [yearlySummaries, setYearlySummaries] = useState<Summary[]>([]);
 
+  /** Prevent setState on unmounted component. */
   const mountedRef = useRef(true);
 
+  /**
+   * Initialize summaries:
+   * - Kick off backfill for recent missing summaries
+   * - Fetch latest weekly/monthly/yearly lists
+   * - Write results to state if still mounted
+   */
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
@@ -42,6 +59,7 @@ export default function SummariesScreen() {
     }
   }, []);
 
+  /** Public refresh handler for pull-to-refresh. */
   const onRefresh = useCallback(async () => {
     await loadData();
   }, [loadData]);
@@ -53,12 +71,7 @@ export default function SummariesScreen() {
     };
   }, [loadData]);
 
-  const handlePressSummary = (type: SummaryType) => {
-    // Implement navigation to a new screen to show the list of summaries
-    // router.push(`/summaries/${type}`);
-    console.log(`Navigating to ${type} summaries...`);
-  };
-
+  /** Quick boolean for rendering either cards or the empty state. */
   const hasAnySummaries =
     weeklySummaries.length > 0 || monthlySummaries.length > 0 || yearlySummaries.length > 0;
 
@@ -70,7 +83,8 @@ export default function SummariesScreen() {
     <RefreshableScrollView
       style={styles.container}
       onRefresh={onRefresh}
-      contentContainerStyle={styles.scrollContent}>
+      contentContainerStyle={styles.scrollContent}
+    >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your Progress</Text>
         <Text style={styles.headerSubtitle}>AI-powered insights from your daily entries</Text>
@@ -82,19 +96,19 @@ export default function SummariesScreen() {
             title="Weekly Summaries"
             description="View your past week's insights."
             count={weeklySummaries.length}
-            onPress={() => handlePressSummary('weekly')}
+            summaryType="weekly"
           />
           <SummaryCard
             title="Monthly Summaries"
             description="View your past month's insights."
             count={monthlySummaries.length}
-            onPress={() => handlePressSummary('monthly')}
+            summaryType="monthly"
           />
           <SummaryCard
             title="Yearly Summaries"
             description="View your past year's insights."
             count={yearlySummaries.length}
-            onPress={() => handlePressSummary('yearly')}
+            summaryType="yearly"
           />
         </View>
       ) : (

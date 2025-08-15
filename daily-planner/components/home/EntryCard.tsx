@@ -1,22 +1,36 @@
-// ============================================
 // components/home/EntryCard.tsx
-// ============================================
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { Link } from 'expo-router';
-import { DailyEntry } from '../../lib/database';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
-import { getRatingColor } from '../../utils/ratingHelpers';
-import { formatEntryDate } from '../../utils/dateHelpers';
-import { getEntryPreview } from '../../utils/textHelpers';
+import { DailyEntry } from '@/lib/database';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
+import { getRatingColor } from '@/utils/ratingHelpers';
+import { formatEntryDate } from '@/utils/dateHelpers';
+import { getEntryPreview } from '@/utils/textHelpers';
 
+/**
+ * Props for {@link EntryCard}.
+ */
 interface EntryCardProps {
+  /** The full daily entry to preview. */
   entry: DailyEntry;
+  /** Today's date in local ISO (YYYY-MM-DD) for relative formatting. */
   todayISO: string;
 }
 
+/**
+ * EntryCard
+ *
+ * Tappable card that previews a single daily entry:
+ * - Header shows formatted date and 3 colored rating dots
+ * - Body shows a short text preview
+ * - Footer shows counts for accomplishments/learned/grateful
+ *
+ * Navigation:
+ * - Wraps content in an `expo-router` Link to `/daily-entry?date=<entry.date>`
+ */
 export const EntryCard: React.FC<EntryCardProps> = React.memo(({ entry, todayISO }) => {
   return (
     <Link
@@ -24,7 +38,8 @@ export const EntryCard: React.FC<EntryCardProps> = React.memo(({ entry, todayISO
         pathname: '/daily-entry',
         params: { date: entry.date },
       }}
-      asChild>
+      asChild
+    >
       <TouchableOpacity style={styles.container} accessibilityRole="button">
         <View style={styles.header}>
           <Text style={styles.date}>{formatEntryDate(entry.date, todayISO)}</Text>
@@ -44,6 +59,10 @@ export const EntryCard: React.FC<EntryCardProps> = React.memo(({ entry, todayISO
 
 EntryCard.displayName = 'EntryCard';
 
+/**
+ * Small tri-dot visual for productivity, mood, and energy ratings.
+ * Each dot color is derived from `getRatingColor(1..5)`.
+ */
 const RatingDots: React.FC<{ ratings: DailyEntry['ratings'] }> = ({ ratings }) => (
   <View style={styles.ratingDots} accessible accessibilityLabel="Ratings">
     <View style={[styles.dot, { backgroundColor: getRatingColor(ratings.productivity) }]} />

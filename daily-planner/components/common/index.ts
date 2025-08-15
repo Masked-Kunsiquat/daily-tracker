@@ -1,3 +1,4 @@
+// components/common/index.ts
 import { LoadingScreen } from './LoadingScreen';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Button } from './Button';
@@ -9,6 +10,7 @@ import { Badge } from './Badge';
 import { IconButton } from './IconButton';
 import { ProgressBar } from './ProgressBar';
 import { TextInput } from './TextInput';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 // Type exports
 import type { ButtonVariant, ButtonSize } from './Button';
@@ -26,6 +28,7 @@ export {
   IconButton,
   ProgressBar,
   TextInput,
+  MarkdownRenderer,
 };
 
 export type { ButtonVariant, ButtonSize };

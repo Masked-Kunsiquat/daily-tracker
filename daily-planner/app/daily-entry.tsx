@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { databaseService, DailyEntry } from '../lib/database';
+import { databaseService, DailyEntry } from '@/lib/database';
 
 // Import reusable components
 import {
@@ -24,7 +24,16 @@ import { Spacing } from '../styles/spacing';
 // Local date helper (returns local YYYY-MM-DD)
 import { formatDateISO } from '../utils/dateHelpers';
 
-// Helper function to safely normalize the date parameter
+/**
+ * Normalize a `date` param coming from the router into a safe local ISO string (YYYY-MM-DD).
+ *
+ * Accepts a string, an array of strings (takes the first), or undefined.
+ * Validates that the value matches YYYY-MM-DD and represents a real calendar date.
+ * Falls back to today's LOCAL date when invalid or missing (avoids UTC off-by-one issues).
+ *
+ * @param {string | string[] | undefined} paramDate - The incoming route param for date.
+ * @returns {string} A validated local ISO date string in the form YYYY-MM-DD.
+ */
 const normalizeDateParam = (paramDate: string | string[] | undefined): string => {
   // Handle array case - take first element
   let dateValue = Array.isArray(paramDate) ? paramDate[0] : paramDate;
@@ -52,6 +61,22 @@ const normalizeDateParam = (paramDate: string | string[] | undefined): string =>
   return formatDateISO();
 };
 
+/**
+ * DailyEntryScreen
+ *
+ * Screen for creating or editing a single day's journal entry.
+ * - Loads an existing entry for the given date (if present)
+ * - Provides inputs for free-text reflection, dynamic lists, and 3 ratings
+ * - Saves the entry atomically via `databaseService.saveDailyEntry`
+ * - Guards against setState on unmounted component and double-submission
+ *
+ * Routing:
+ * - Expects optional `date` param (YYYY-MM-DD). Defaults to today's local date.
+ *
+ * UX:
+ * - Pull to refresh re-fetches the entry for the day
+ * - "Save Entry" persists and navigates back on success
+ */
 export default function DailyEntryScreen() {
   const { date: paramDate } = useLocalSearchParams();
   const entryDate = normalizeDateParam(paramDate);
@@ -72,13 +97,23 @@ export default function DailyEntryScreen() {
   const [accomplishments, setAccomplishments] = useState(['']);
   const [thingsLearned, setThingsLearned] = useState(['']);
   const [thingsGrateful, setThingsGrateful] = useState(['']);
+  /**
+   * Ratings captured on a 1–5 scale.
+   * @type {{ productivity: number; mood: number; energy: number }}
+   */
   const [ratings, setRatings] = useState({
     productivity: 3,
     mood: 3,
     energy: 3,
   });
 
-  // Data loading
+  /**
+   * Load an existing daily entry (if present) for `entryDate`.
+   * Initializes the database (idempotent), fetches the row, and hydrates local state.
+   * Ensures dynamic list sections always have at least one input row.
+   *
+   * Safe against setState after unmount; respects `mountedRef`.
+   */
   const loadExistingEntry = useCallback(async () => {
     try {
       await databaseService.initialize();
@@ -110,7 +145,15 @@ export default function DailyEntryScreen() {
     loadExistingEntry();
   }, [loadExistingEntry]);
 
-  // Data saving with double-submission protection
+  /**
+   * Persist the current form state as a `DailyEntry`.
+   * - Prevents double-submission via `saving` guard
+   * - Filters out empty strings from dynamic list sections
+   * - On success, shows confirmation and navigates back
+   * - On failure, alerts with a generic error
+   *
+   * Safe against setState after unmount; respects `mountedRef`.
+   */
   const saveEntry = async () => {
     // Guard against double-submission at handler level
     if (saving) {
@@ -157,12 +200,14 @@ export default function DailyEntryScreen() {
 
   return (
     <>
+      {/* Scroll container with pull-to-refresh that re-runs the fetch */}
       <RefreshableScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
         onRefresh={loadExistingEntry}>
         <Text style={styles.dateHeader}>{formattedDate}</Text>
 
+        {/* Free-text reflection */}
         <Card style={styles.card}>
           <TextInput
             label="Daily Reflection"
@@ -175,6 +220,7 @@ export default function DailyEntryScreen() {
           />
         </Card>
 
+        {/* Dynamic lists (never empty; always at least one input row) */}
         <DynamicListSection
           title="Accomplishments"
           items={accomplishments}
@@ -196,8 +242,11 @@ export default function DailyEntryScreen() {
           placeholder="e.g., A sunny afternoon"
         />
 
+        {/* 1–5 sliders for productivity, mood, energy */}
         <RatingsSection ratings={ratings} setRatings={setRatings} />
       </RefreshableScrollView>
+
+      {/* Sticky footer with primary action */}
       <View style={styles.footer}>
         <Button
           title="Save Entry"

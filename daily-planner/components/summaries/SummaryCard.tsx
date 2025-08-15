@@ -1,43 +1,69 @@
 // daily-planner/components/summaries/SummaryCard.tsx
-
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
+import { router } from 'expo-router';
 import { Badge, Card } from '../common';
-import { Colors } from '../../styles/colors';
-import { Typography } from '../../styles/typography';
-import { Spacing } from '../../styles/spacing';
+import { Colors } from '@/styles/colors';
+import { Typography } from '@/styles/typography';
+import { Spacing } from '@/styles/spacing';
 
+/**
+ * Props for {@link SummaryCard}.
+ */
 interface SummaryCardProps {
+  /** Section title (e.g., "Weekly Summary"). */
   title: string;
+  /** Short description of what this summary contains. */
   description: string;
+  /** Count badge value. Typically the number of summaries available. */
   count: number;
-  onPress: () => void;
-  /** Optional overrides for screen reader text */
+  /** Summary route segment to open when pressed. */
+  summaryType: 'weekly' | 'monthly' | 'yearly';
+  /** Optional custom press handler; if omitted, navigates to `/summaries/[type]`. */
+  onPress?: () => void;
+  /** Optional screen-reader label override. */
   accessibilityLabel?: string;
+  /** Optional screen-reader hint override. */
   accessibilityHint?: string;
 }
 
 /**
- * A reusable card component to display a summary type with a count badge.
+ * SummaryCard
+ *
+ * Reusable card showing a summary type with a count badge.
+ * - Pressing navigates to `/summaries/[type]` unless a custom `onPress` is provided.
+ * - Includes accessible label/hint with sensible defaults.
  */
 export const SummaryCard: React.FC<SummaryCardProps> = ({
   title,
   description,
   count,
+  summaryType,
   onPress,
   accessibilityLabel,
   accessibilityHint,
 }) => {
-  // Why: Provide meaningful defaults while allowing explicit overrides.
+  /** Navigate to the typed summary route unless a custom handler is provided. */
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else {
+      router.push({
+        pathname: '/summaries/[type]',
+        params: { type: summaryType },
+      });
+    }
+  };
+
+  /** Provide meaningful SR defaults while allowing explicit overrides. */
   const a11yLabel =
     accessibilityLabel ?? `${title}. ${description}. ${count} ${count === 1 ? 'item' : 'items'}.`;
   const a11yHint = accessibilityHint ?? 'Opens details.';
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.8}
-      // Why: Increase touch target without changing visual layout.
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       accessibilityRole="button"
       accessibilityLabel={a11yLabel}
@@ -51,11 +77,11 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
           </View>
           <Badge label={String(count)} variant="primary" size="medium" />
         </View>
-        {/* Why: Decorative only; must not be read by screen readers. */}
+        {/* Decorative arrow; hidden from screen readers */}
         <Text
           style={styles.arrow}
           accessible={false}
-          accessibilityElementsHidden={true}
+          accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
         >
           ›
