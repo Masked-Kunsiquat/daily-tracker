@@ -24,4 +24,5 @@ config.resolver.platforms = ['native', 'ios', 'android', 'web'];
 // Add source extensions for TypeScript
 config.resolver.sourceExts.push('jsx', 'js', 'ts', 'tsx', 'json');
 
+config.resolver.assetExts.push('onnx', 'ort', 'bin');
 module.exports = config;

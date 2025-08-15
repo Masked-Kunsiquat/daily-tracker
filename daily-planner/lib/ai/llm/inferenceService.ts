@@ -1,6 +1,7 @@
-// File: lib/ai/llm/inferenceService.ts
+// lib/ai/llm/inferenceService.ts
 
 import { AppState, AppStateStatus, Platform } from 'react-native';
+import {Asset} from 'expo-asset';
 import * as Device from 'expo-device';
 
 import {
@@ -76,10 +77,8 @@ export class InferenceService {
 
     await this.ensureOrtLoaded();
 
-    // Download then create session
-    const { uri } = await ModelManager.downloadModel(targetModel, {
-      skipVerify: !MODEL_REGISTRY[targetModel].sha256,
-    });
+    // Resolve model URI (bundled asset via expo-asset OR remote download)
+    const uri = await this.resolveModelUri(targetModel);
 
     const providers = this.deviceProfile
       ? selectOrtExecutionProviders(this.deviceProfile)
@@ -205,8 +204,17 @@ export class InferenceService {
       executionProviders: providers,
       graphOptimizationLevel: 'all',
     };
-    const s = await (this.ort as any).InferenceSession.create(modelUri, opts);
-    return s as unknown;
+    let s: unknown;
+    try {
+      s = await (this.ort as any).InferenceSession.create(modelUri, opts);
+    } catch (e) {
+      throw new LLMError(
+        'INFERENCE_FAILED',
+        `Failed to create ORT session (uri=${modelUri}, providers=${providers.join(
+          ','
+        )}): ${(e as Error).message}`
+      );
+    }    return s as unknown;
   }
 
   private attachAppStateListeners() {
@@ -363,10 +371,7 @@ export class InferenceService {
 
     this.modelId = newModelId;
     await this.ensureOrtLoaded();
-
-    const { uri } = await ModelManager.downloadModel(newModelId, {
-      skipVerify: !MODEL_REGISTRY[newModelId].sha256,
-    });
+    const uri = await this.resolveModelUri(newModelId);
 
     const providers = this.deviceProfile
       ? selectOrtExecutionProviders(this.deviceProfile)
@@ -393,6 +398,40 @@ export class InferenceService {
 
     if (kind === 't5-small') return pickBySize(110, 140) as ModelId;
     return (pickBySize(140, 200) as ModelId) ?? (sorted[sorted.length - 1].id as ModelId);
+  }
+  /**
+   * Resolve a usable model URI for ORT.
+   * - If the registry entry exposes a bundled asset (numeric module id), resolve with expo-asset.
+   * - Otherwise, download (or fetch from cache) via ModelManager and return its file:// URI.
+   *
+   * Expected registry shape (partial):
+   * {
+   *   id: ModelId,
+   *   sizeMB: number,
+   *   assetModule?: number,     // e.g., require('@/assets/models/tiny.onnx')
+   *   sourceURL?: string,       // for remote downloads
+   *   sha256?: string           // optional integrity for remote
+   * }
+   */
+  private async resolveModelUri(mid: ModelId): Promise<string> {
+    const spec: any = MODEL_REGISTRY[mid];
+    if (!spec) {
+      throw new LLMError('INFERENCE_FAILED', `Model spec not found for id "${mid}".`);
+    }
+
+    // Bundled (preferred): resolve with expo-asset to a local file:// path
+    if (typeof spec.assetModule === 'number') {
+      const asset = Asset.fromModule(spec.assetModule);
+      // no-op if already local; downloads to cache in dev or if remote fallback
+      await asset.downloadAsync();
+      const uri = asset.localUri ?? asset.uri;
+      if (!uri) throw new LLMError('INFERENCE_FAILED', `Failed to resolve asset URI for "${mid}".`);
+      return uri;
+    }
+
+    // Remote: delegate to ModelManager
+    const { uri } = await ModelManager.downloadModel(mid, { skipVerify: !spec.sha256 });
+    return uri;
   }
 }
 
