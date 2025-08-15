@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'rea
 import { Card, IconButton, Button, Badge, MarkdownRenderer } from '../common';
 import { Summary } from '@/lib/database';
 import { formatDateRange } from '@/utils/dateRange';
+import { getRatingColor } from '@/utils/ratingHelpers'; // Why: Reuse shared helper, avoid duplication
 import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
@@ -23,12 +24,6 @@ export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({
   const dateRange = formatDateRange(summary.start_date, summary.end_date);
   const contentPreview = summary.content.substring(0, 300);
   const isLongContent = summary.content.length > 300;
-
-  const getRatingColor = (rating: number): string => {
-    if (rating >= 4) return Colors.ratingHigh;
-    if (rating >= 3) return Colors.ratingMedium;
-    return Colors.ratingLow;
-  };
 
   return (
     <>

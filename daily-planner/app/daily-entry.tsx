@@ -1,334 +1,246 @@
-// daily-planner/components/summaries/SummaryDetailCard.tsx
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
-import { Card, IconButton, Button, Badge, MarkdownRenderer } from '@/components/common';
-import { Summary } from '@/lib/database';
-import { formatDateRange } from '@/utils/dateRange';
-import { getRatingColor } from '@/utils/ratingHelpers'; // Why: Reuse shared helper, avoid duplication
-import { Colors } from '@/styles/colors';
-import { Typography } from '@/styles/typography';
-import { Spacing } from '@/styles/spacing';
+// daily-planner/app/daily-entry.tsx
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { databaseService, DailyEntry } from '@/lib/database';
 
-interface SummaryDetailCardProps {
-  summary: Summary;
-  onShare: () => void;
-}
+// Import reusable components
+import {
+  RefreshableScrollView,
+  LoadingScreen,
+  Card,
+  TextInput,
+  Button,
+} from '../components/common';
 
-export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({
-  summary,
-  onShare,
-}) => {
-  const [showFullContent, setShowFullContent] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+// Import new modular components
+import { DynamicListSection } from '../components/daily-entry/DynamicListSection';
+import { RatingsSection } from '../components/daily-entry/RatingsSection';
 
-  const dateRange = formatDateRange(summary.start_date, summary.end_date);
-  const contentPreview = summary.content.substring(0, 300);
-  const isLongContent = summary.content.length > 300;
+import { Colors } from '../styles/colors';
+import { Typography } from '../styles/typography';
+import { Spacing } from '../styles/spacing';
+
+// Local date helper (returns local YYYY-MM-DD)
+import { formatDateISO } from '../utils/dateHelpers';
+
+// Helper function to safely normalize the date parameter
+const normalizeDateParam = (paramDate: string | string[] | undefined): string => {
+  // Handle array case - take first element
+  let dateValue = Array.isArray(paramDate) ? paramDate[0] : paramDate;
+
+  // If we have a value, validate it
+  if (dateValue) {
+    // Check if it matches YYYY-MM-DD format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateRegex.test(dateValue)) {
+      // Additional validation - ensure it's a valid calendar date
+      const [y, m, d] = dateValue.split('-').map(Number);
+      const test = new Date(y, (m || 1) - 1, d || 1);
+      if (
+        !isNaN(test.getTime()) &&
+        test.getFullYear() === y &&
+        test.getMonth() === m - 1 &&
+        test.getDate() === d
+      ) {
+        return dateValue;
+      }
+    }
+  }
+
+  // Fallback to today's LOCAL date (avoid UTC off-by-one)
+  return formatDateISO();
+};
+
+export default function DailyEntryScreen() {
+  const { date: paramDate } = useLocalSearchParams();
+  const entryDate = normalizeDateParam(paramDate);
+
+  // Track mount status to avoid setState on unmounted component
+  const mountedRef = useRef<boolean>(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false; // prevent state updates after unmount
+    };
+  }, []);
+
+  // State
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [dailyText, setDailyText] = useState('');
+  const [accomplishments, setAccomplishments] = useState(['']);
+  const [thingsLearned, setThingsLearned] = useState(['']);
+  const [thingsGrateful, setThingsGrateful] = useState(['']);
+  const [ratings, setRatings] = useState({
+    productivity: 3,
+    mood: 3,
+    energy: 3,
+  });
+
+  // Data loading
+  const loadExistingEntry = useCallback(async () => {
+    try {
+      await databaseService.initialize();
+      const existingEntry = await databaseService.getDailyEntry(entryDate);
+
+      if (existingEntry && mountedRef.current) {
+        setDailyText(existingEntry.daily_text);
+        // Ensure lists are not empty for the UI
+        setAccomplishments(
+          existingEntry.accomplishments.length > 0 ? existingEntry.accomplishments : [''],
+        );
+        setThingsLearned(
+          existingEntry.things_learned.length > 0 ? existingEntry.things_learned : [''],
+        );
+        setThingsGrateful(
+          existingEntry.things_grateful.length > 0 ? existingEntry.things_grateful : [''],
+        );
+        setRatings(existingEntry.ratings);
+      }
+    } catch (error) {
+      console.error('Error loading existing entry:', error);
+      Alert.alert('Error', 'Failed to load existing entry');
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, [entryDate]);
+
+  useEffect(() => {
+    loadExistingEntry();
+  }, [loadExistingEntry]);
+
+  // Data saving with double-submission protection
+  const saveEntry = async () => {
+    // Guard against double-submission at handler level
+    if (saving) {
+      return;
+    }
+
+    if (mountedRef.current) setSaving(true);
+    try {
+      const entry: DailyEntry = {
+        date: entryDate,
+        daily_text: dailyText,
+        accomplishments: accomplishments.filter((item) => item.trim() !== ''),
+        things_learned: thingsLearned.filter((item) => item.trim() !== ''),
+        things_grateful: thingsGrateful.filter((item) => item.trim() !== ''),
+        ratings,
+      };
+
+      await databaseService.saveDailyEntry(entry);
+
+      Alert.alert('Entry Saved!', 'Your daily entry has been saved successfully.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } catch (error) {
+      console.error('Error saving entry:', error);
+      Alert.alert('Error', 'Failed to save entry. Please try again.');
+    } finally {
+      if (mountedRef.current) setSaving(false);
+    }
+  };
+
+  // Render Logic
+  if (loading) {
+    return <LoadingScreen message="Loading entry..." />;
+  }
+
+  // Parse entryDate as local date to avoid UTC shift
+  const [y, m, d] = entryDate.split('-').map(Number);
+  const formattedDate = new Date(y, m - 1, d).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
     <>
-      <Card style={styles.card}>
-        <View style={styles.header}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.dateRange}>{dateRange}</Text>
-            {summary.created_at && !isNaN(Date.parse(summary.created_at)) && (
-              <Text style={styles.createdAt}>
-                Created {new Date(summary.created_at).toLocaleDateString()}
-              </Text>
-            )}
-          </View>
-          <IconButton
-            icon="📤"
-            onPress={onShare}
-            size="small"
-            label="Share summary"
+      <RefreshableScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        onRefresh={loadExistingEntry}>
+        <Text style={styles.dateHeader}>{formattedDate}</Text>
+
+        <Card style={styles.card}>
+          <TextInput
+            label="Daily Reflection"
+            value={dailyText}
+            onChangeText={setDailyText}
+            placeholder="How was your day? What happened?"
+            multiline
+            numberOfLines={6}
+            style={styles.textArea}
           />
-        </View>
+        </Card>
 
-        {/* Insights Summary */}
-        <View style={styles.insights}>
-          <Text style={styles.insightsTitle}>Key Insights</Text>
-          
-          <View style={styles.ratings}>
-            <View style={styles.ratingItem}>
-              <Text style={styles.ratingLabel}>Productivity</Text>
-              <View style={[
-                styles.ratingBadge, 
-                { backgroundColor: getRatingColor(summary.insights.productivity_trend) }
-              ]}>
-                <Text style={styles.ratingValue}>
-                  {summary.insights.productivity_trend.toFixed(1)}
-                </Text>
-              </View>
-            </View>
-            
-            <View style={styles.ratingItem}>
-              <Text style={styles.ratingLabel}>Mood</Text>
-              <View style={[
-                styles.ratingBadge, 
-                { backgroundColor: getRatingColor(summary.insights.mood_trend) }
-              ]}>
-                <Text style={styles.ratingValue}>
-                  {summary.insights.mood_trend.toFixed(1)}
-                </Text>
-              </View>
-            </View>
-            
-            <View style={styles.ratingItem}>
-              <Text style={styles.ratingLabel}>Energy</Text>
-              <View style={[
-                styles.ratingBadge, 
-                { backgroundColor: getRatingColor(summary.insights.energy_trend) }
-              ]}>
-                <Text style={styles.ratingValue}>
-                  {summary.insights.energy_trend.toFixed(1)}
-                </Text>
-              </View>
-            </View>
-          </View>
+        <DynamicListSection
+          title="Accomplishments"
+          items={accomplishments}
+          setItems={setAccomplishments}
+          placeholder="e.g., Finished a project"
+        />
 
-          {summary.insights.key_themes.length > 0 && (
-            <View style={styles.themes}>
-              <Text style={styles.themesTitle}>Key Themes</Text>
-              <View style={styles.themesContainer}>
-                {summary.insights.key_themes.slice(0, 5).map((theme, index) => (
-                  <Badge
-                    key={index}
-                    label={theme}
-                    variant="neutral"
-                    size="small"
-                  />
-                ))}
-              </View>
-            </View>
-          )}
-        </View>
+        <DynamicListSection
+          title="Things I Learned"
+          items={thingsLearned}
+          setItems={setThingsLearned}
+          placeholder="e.g., A new shortcut in my code editor"
+        />
 
-        {/* Content Preview */}
-        <View style={styles.content}>
-          <Text style={styles.contentTitle}>Summary</Text>
-          
-          <MarkdownRenderer 
-            content={isExpanded ? summary.content : contentPreview}
-            style={styles.markdownContent}
-          />
+        <DynamicListSection
+          title="Things I'm Grateful For"
+          items={thingsGrateful}
+          setItems={setThingsGrateful}
+          placeholder="e.g., A sunny afternoon"
+        />
 
-          {isLongContent && (
-            <View style={styles.contentActions}>
-              <TouchableOpacity
-                onPress={() => setIsExpanded(!isExpanded)}
-                style={styles.expandButton}
-              >
-                <Text style={styles.expandButtonText}>
-                  {isExpanded ? 'Show Less' : 'Show More'}
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                onPress={() => setShowFullContent(true)}
-                style={styles.fullViewButton}
-              >
-                <Text style={styles.fullViewButtonText}>Full View</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      </Card>
-
-      {/* Full Content Modal */}
-      <Modal
-        visible={showFullContent}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <View style={styles.modal}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{dateRange}</Text>
-            <IconButton
-              icon="✕"
-              onPress={() => setShowFullContent(false)}
-              size="medium"
-            />
-          </View>
-          
-          <ScrollView 
-            style={styles.modalContent}
-            contentContainerStyle={styles.modalScrollContent}
-          >
-            <MarkdownRenderer 
-              content={summary.content}
-              style={styles.markdownContent}
-            />
-          </ScrollView>
-          
-          <View style={styles.modalFooter}>
-            <Button
-              title="Share"
-              onPress={() => {
-                setShowFullContent(false);
-                onShare();
-              }}
-              variant="outline"
-              style={styles.modalShareButton}
-            />
-            <Button
-              title="Close"
-              onPress={() => setShowFullContent(false)}
-              style={styles.modalCloseButton}
-            />
-          </View>
-        </View>
-      </Modal>
+        <RatingsSection ratings={ratings} setRatings={setRatings} />
+      </RefreshableScrollView>
+      <View style={styles.footer}>
+        <Button
+          title="Save Entry"
+          onPress={saveEntry}
+          loading={saving}
+          disabled={saving}
+          fullWidth
+          style={styles.saveButton}
+        />
+      </View>
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  card: {
-    marginBottom: Spacing.lg,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.lg,
-  },
-  titleContainer: {
-    flex: 1,
-  },
-  dateRange: {
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.bold,
-    color: Colors.text,
-    marginBottom: Spacing.xs,
-  },
-  createdAt: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textMuted,
-  },
-  insights: {
-    marginBottom: Spacing.lg,
-    paddingBottom: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-  },
-  insightsTitle: {
-    fontSize: Typography.sizes.md,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.text,
-    marginBottom: Spacing.md,
-  },
-  ratings: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.md,
-  },
-  ratingItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  ratingLabel: {
-    fontSize: Typography.sizes.xs,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.xs,
-  },
-  ratingBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: 12,
-    minWidth: 32,
-    alignItems: 'center',
-  },
-  ratingValue: {
-    fontSize: Typography.sizes.sm,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textInverse,
-  },
-  themes: {
-    marginTop: Spacing.md,
-  },
-  themesTitle: {
-    fontSize: Typography.sizes.sm,
-    fontWeight: Typography.weights.medium,
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-  },
-  themesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  content: {
-    marginTop: Spacing.md,
-  },
-  contentTitle: {
-    fontSize: Typography.sizes.md,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.text,
-    marginBottom: Spacing.md,
-  },
-  markdownContent: {
-    marginVertical: Spacing.sm,
-  },
-  contentActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.borderLight,
-  },
-  expandButton: {
-    paddingVertical: Spacing.sm,
-  },
-  expandButtonText: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.primary,
-    fontWeight: Typography.weights.medium,
-  },
-  fullViewButton: {
-    paddingVertical: Spacing.sm,
-  },
-  fullViewButtonText: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.primary,
-    fontWeight: Typography.weights.medium,
-  },
-  modal: {
+  container: {
     flex: 1,
     backgroundColor: Colors.background,
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  scrollContent: {
     padding: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
-  modalTitle: {
+  dateHeader: {
     fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.bold,
-    color: Colors.text,
-    flex: 1,
+    fontWeight: Typography.weights.semibold,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
   },
-  modalContent: {
-    flex: 1,
+  card: {
+    marginBottom: Spacing.lg,
   },
-  modalScrollContent: {
+  textArea: {
+    minHeight: 120,
+    textAlignVertical: 'top',
+  },
+  footer: {
     padding: Spacing.lg,
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    padding: Spacing.lg,
+    backgroundColor: Colors.background,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    gap: Spacing.md,
   },
-  modalShareButton: {
-    flex: 1,
-  },
-  modalCloseButton: {
-    flex: 1,
+  saveButton: {
+    backgroundColor: Colors.success,
   },
 });
