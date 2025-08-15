@@ -8,12 +8,28 @@ import { Spacing } from '@/styles/spacing';
 import { Badge } from '@/components/common/Badge';
 import { SummaryStats } from '@/hooks/useHomeData';
 
+/**
+ * Props for {@link QuickActions}.
+ */
 interface QuickActionsProps {
+  /** Today's local ISO date (YYYY-MM-DD) used for the new/edit entry link. */
   todayISO: string;
+  /** Whether an entry already exists for `todayISO` (changes primary button label). */
   hasEntryToday: boolean;
+  /** Counts of available summaries (weekly/monthly/yearly). */
   summaryStats: SummaryStats;
 }
 
+/**
+ * QuickActions
+ *
+ * Home-screen shortcuts:
+ * - Primary: create/edit today's entry (navigates to `/daily-entry?date=<todayISO>`)
+ * - Secondary: jump to summaries with compact W/M/Y badges
+ *
+ * Accessibility:
+ * - Buttons use `accessibilityRole="button"` and hints on the summaries action.
+ */
 export const QuickActions: React.FC<QuickActionsProps> = ({
   todayISO,
   hasEntryToday,
@@ -26,7 +42,8 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
           pathname: '/daily-entry',
           params: { date: todayISO },
         }}
-        asChild>
+        asChild
+      >
         <TouchableOpacity style={styles.primaryButton} accessibilityRole="button">
           <Text style={styles.primaryButtonText}>
             {hasEntryToday ? "✏️ Edit Today's Entry" : '📝 New Daily Entry'}
@@ -38,7 +55,8 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         <TouchableOpacity
           style={styles.secondaryButton}
           accessibilityRole="button"
-          accessibilityHint="View weekly, monthly, and yearly summaries">
+          accessibilityHint="View weekly, monthly, and yearly summaries"
+        >
           <Text style={styles.secondaryButtonText}>📊 View Summaries</Text>
           <View style={styles.badges}>
             <Badge label={`${summaryStats.weekly}W`} size="small" />

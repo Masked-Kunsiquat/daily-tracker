@@ -3,9 +3,36 @@ import type { SummaryRequest, SummaryResponse } from './ai/types';
 import { ruleBasedWeekly, ruleBasedMonthly, ruleBasedYearly } from './ai/summarizers';
 import { parseLocalISODate } from '@/utils/dateHelpers';
 
+/**
+ * AIService
+ *
+ * Thin orchestration layer that validates summary requests and routes them to
+ * the appropriate summarizer implementation (currently rule-based).
+ *
+ * Future-proofing:
+ * - `callLocalLLM` is a stub for a real LLM endpoint; once wired up,
+ *   `generateSummary` can switch from rule-based to LLM-backed generation.
+ */
 class AIService {
+  /** Placeholder for a future local LLM endpoint. Not used yet. */
   private baseURL = 'http://localhost:3000/api'; // placeholder for local LLM endpoint
 
+  /**
+   * Generate a summary for the requested period.
+   *
+   * Routing:
+   * - `weekly`  → requires `entries` (non-empty)
+   * - `monthly` → requires `summaries` (non-empty)
+   * - `yearly`  → requires `summaries` (non-empty)
+   *
+   * Validation:
+   * - Ensures `startDate`/`endDate` are local ISO (`YYYY-MM-DD`) and parseable
+   * - Ensures the required payload (entries/summaries) is present & non-empty
+   *
+   * @throws Error if the request is invalid for the given `type`
+   * @param request - Structured summary request payload
+   * @returns A {@link SummaryResponse} containing `content` and `insights`
+   */
   async generateSummary(request: SummaryRequest): Promise<SummaryResponse> {
     this.validateSummaryRequest(request);
 
@@ -21,11 +48,24 @@ class AIService {
     throw new Error(`Invalid summary request for type: ${request.type}`);
   }
 
+  /**
+   * Validate structural and semantic correctness of a {@link SummaryRequest}.
+   *
+   * Checks:
+   * - `startDate` and `endDate` must be `YYYY-MM-DD` (date-only, local ISO)
+   * - Both dates must parse to valid JS Dates via `parseLocalISODate`
+   * - `weekly` requires a non-empty `entries` array
+   * - `monthly`/`yearly` require a non-empty `summaries` array
+   *
+   * @param req - The summary request to validate
+   * @throws Error when any precondition is not met
+   */
   private validateSummaryRequest(req: SummaryRequest): void {
     const isDateOnly = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s);
     if (!req.startDate || !req.endDate || !isDateOnly(req.startDate) || !isDateOnly(req.endDate)) {
       throw new Error(`${req.type} summary requires startDate/endDate in YYYY-MM-DD format`);
     }
+
     // Local-safe parse (ensures not NaN)
     const s = parseLocalISODate(req.startDate);
     const e = parseLocalISODate(req.endDate);
@@ -36,12 +76,23 @@ class AIService {
     if (req.type === 'weekly' && (!req.entries || req.entries.length === 0)) {
       throw new Error('weekly summary requires entries as a non-empty array');
     }
-    if ((req.type === 'monthly' || req.type === 'yearly') && (!req.summaries || req.summaries.length === 0)) {
+    if (
+      (req.type === 'monthly' || req.type === 'yearly') &&
+      (!req.summaries || req.summaries.length === 0)
+    ) {
       throw new Error(`${req.type} summary requires summaries as a non-empty array`);
     }
   }
 
-  // Future: real LLM call
+  /**
+   * Placeholder for future LLM integration.
+   * Replace with a real fetch/HTTP call to `this.baseURL` when available.
+   *
+   * @param prompt - The constructed prompt for the LLM
+   * @param data - Structured context (entries/summaries, date range, etc.)
+   * @returns Generated text from the LLM
+   * @throws Error until implemented
+   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async callLocalLLM(prompt: string, data: unknown): Promise<string> {
     throw new Error('Local LLM integration not yet implemented');

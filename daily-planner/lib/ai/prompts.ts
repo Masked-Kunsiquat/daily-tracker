@@ -1,6 +1,32 @@
 // lib/ai/prompts.ts
 import type { DailyEntry, Summary } from '../database';
 
+/**
+ * Build the **weekly summary** system/user prompt.
+ *
+ * What it does:
+ * - Gives clear instructions for an assistant to analyze a week's daily entries.
+ * - Requests a structured JSON response with `content` (Markdown) and `insights`.
+ * - Embeds the provided `entries` payload (pretty-printed) for the model to read.
+ *
+ * Output contract (requested from the model):
+ * ```json
+ * {
+ *   "content": "Markdown formatted summary",
+ *   "insights": {
+ *     "key_themes": ["theme1", "theme2"],
+ *     "productivity_trend": 0,
+ *     "mood_trend": 0,
+ *     "energy_trend": 0,
+ *     "top_accomplishments": ["..."],
+ *     "main_learnings": ["..."]
+ *   }
+ * }
+ * ```
+ *
+ * @param entries - Array of {@link DailyEntry} objects for the target week.
+ * @returns A single prompt string suitable for an LLM call.
+ */
 export function getWeeklySummaryPrompt(entries: DailyEntry[]): string {
   return `
 You are an AI assistant that helps users reflect on their week through their daily journal entries.
@@ -30,10 +56,30 @@ Please respond in JSON format with the structure:
 `.trim();
 }
 
-// Stubs for future LLM prompts (kept here so callers have a single place)
+/**
+ * Build the **monthly summary** prompt (stub).
+ *
+ * Intention:
+ * - Will instruct the model to synthesize a month from multiple weekly summaries.
+ * - Keep this function as the single source for monthly prompt text.
+ *
+ * @param _summaries - Weekly {@link Summary} objects for the month.
+ * @returns Placeholder string until the real prompt is authored.
+ */
 export function getMonthlySummaryPrompt(_summaries: Summary[]): string {
   return `Monthly prompt TBD`;
 }
+
+/**
+ * Build the **yearly summary** prompt (stub).
+ *
+ * Intention:
+ * - Will instruct the model to synthesize a year from multiple monthly summaries.
+ * - Keep this function as the single source for yearly prompt text.
+ *
+ * @param _summaries - Monthly {@link Summary} objects for the year.
+ * @returns Placeholder string until the real prompt is authored.
+ */
 export function getYearlySummaryPrompt(_summaries: Summary[]): string {
   return `Yearly prompt TBD`;
 }

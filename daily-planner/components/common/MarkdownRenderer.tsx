@@ -5,17 +5,47 @@ import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
 
+/**
+ * Props for {@link MarkdownRenderer}.
+ */
 interface MarkdownRendererProps {
+  /** Raw markdown-like text to render. */
   content: string;
+  /** Optional container style overrides. */
   style?: StyleProp<ViewStyle>;
 }
 
+/**
+ * Internal parsed element shape used by the simple markdown parser.
+ * Supported node types:
+ * - `heading1` / `heading2` / `heading3` (lines starting with `#`, `##`, `###`)
+ * - `bold` (line wrapped entirely in `**...**`)
+ * - `bullet` (lines starting with `• ` or `- `)
+ * - `paragraph` (plain text line; supports *inline* `**bold**`)
+ * - `spacing` (blank line)
+ */
 interface ParsedElement {
   type: 'heading1' | 'heading2' | 'heading3' | 'bold' | 'bullet' | 'paragraph' | 'spacing';
   content?: string;
   level?: number;
 }
 
+/**
+ * Parse a limited subset of Markdown features into lightweight render tokens.
+ *
+ * Supported:
+ * - Headings: `#`, `##`, `###` at the start of a line
+ * - Bullets: lines starting with `• ` or `- `
+ * - Line-level bold: `**text**` when the entire line is bold
+ * - Inline bold in paragraphs: `**bold**` inside a normal line
+ * - Blank lines become spacing blocks
+ *
+ * Not supported (by design): links, images, code fences/inline code, italics, blockquotes,
+ * numbered lists, nested lists, tables, escaping, etc.
+ *
+ * @param content - Raw input string.
+ * @returns Array of {@link ParsedElement} describing what to render.
+ */
 const parseMarkdown = (content: string): ParsedElement[] => {
   const lines = content.split('\n');
   const elements: ParsedElement[] = [];
@@ -60,6 +90,13 @@ const parseMarkdown = (content: string): ParsedElement[] => {
   return elements;
 };
 
+/**
+ * Render a paragraph string with **inline bold** segments.
+ * This is a simple splitter on `**...**` and does not handle nested or escaped asterisks.
+ *
+ * @param text - Raw paragraph text possibly containing `**bold**` segments.
+ * @param key - React key for the outer Text element.
+ */
 const renderInlineFormatting = (text: string, key: string): React.JSX.Element => {
   // Handle inline bold text **text**
   const parts = text.split(/(\*\*[^*]+\*\*)/);
@@ -80,6 +117,19 @@ const renderInlineFormatting = (text: string, key: string): React.JSX.Element =>
   );
 };
 
+/**
+ * MarkdownRenderer
+ *
+ * Minimal, dependency-free renderer for a constrained markdown subset.
+ * Use this when you just need headings, bullets, and bold text without pulling in
+ * a full markdown engine.
+ *
+ * Accessibility:
+ * - Headings and paragraphs render as Text elements; keep content concise.
+ *
+ * Performance:
+ * - Stateless and synchronous; suitable for short to medium-length content.
+ */
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, style }) => {
   const elements = parseMarkdown(content);
 

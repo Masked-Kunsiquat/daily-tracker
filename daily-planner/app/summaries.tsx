@@ -8,14 +8,33 @@ import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
 
+/**
+ * SummariesScreen
+ *
+ * Hub for AI-generated summaries:
+ * - Triggers background generation for missing weekly/monthly/yearly summaries
+ * - Fetches and displays counts with quick navigation cards
+ * - Pull-to-refresh re-runs the full load
+ *
+ * Safety:
+ * - Uses `mountedRef` to avoid setState after unmount
+ * - Swallows errors into console; UI falls back to EmptyState when nothing is available
+ */
 export default function SummariesScreen() {
   const [loading, setLoading] = useState(true);
   const [weeklySummaries, setWeeklySummaries] = useState<Summary[]>([]);
   const [monthlySummaries, setMonthlySummaries] = useState<Summary[]>([]);
   const [yearlySummaries, setYearlySummaries] = useState<Summary[]>([]);
 
+  /** Prevent setState on unmounted component. */
   const mountedRef = useRef(true);
 
+  /**
+   * Initialize summaries:
+   * - Kick off backfill for recent missing summaries
+   * - Fetch latest weekly/monthly/yearly lists
+   * - Write results to state if still mounted
+   */
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
@@ -40,6 +59,7 @@ export default function SummariesScreen() {
     }
   }, []);
 
+  /** Public refresh handler for pull-to-refresh. */
   const onRefresh = useCallback(async () => {
     await loadData();
   }, [loadData]);
@@ -51,6 +71,7 @@ export default function SummariesScreen() {
     };
   }, [loadData]);
 
+  /** Quick boolean for rendering either cards or the empty state. */
   const hasAnySummaries =
     weeklySummaries.length > 0 || monthlySummaries.length > 0 || yearlySummaries.length > 0;
 
@@ -62,7 +83,8 @@ export default function SummariesScreen() {
     <RefreshableScrollView
       style={styles.container}
       onRefresh={onRefresh}
-      contentContainerStyle={styles.scrollContent}>
+      contentContainerStyle={styles.scrollContent}
+    >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your Progress</Text>
         <Text style={styles.headerSubtitle}>AI-powered insights from your daily entries</Text>
