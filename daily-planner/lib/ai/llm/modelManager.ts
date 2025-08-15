@@ -1,9 +1,10 @@
 // daily-planner/lib/ai/llm/modelManager.ts
 
 import * as FileSystem from 'expo-file-system';
-import * as Crypto from 'expo-crypto';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import { sha256 } from '@noble/hashes/sha256';
+import { bytesToHex } from '@noble/hashes/utils';
 
 import {
   LLMError,
@@ -211,7 +212,7 @@ export class ModelManager {
         // ignore cleanup failures
       }
 
-      // Progress: error state (cast to any in case DownloadProgress has a strict union)
+      // Progress: error state
       (opts.onProgress as any)?.({
         totalBytes: spec.sizeMB * 1024 * 1024,
         receivedBytes: spec.sizeMB * 1024 * 1024,
@@ -247,11 +248,14 @@ export class ModelManager {
     const info = await FileSystem.getInfoAsync(uri);
     if (!info.exists || info.isDirectory) return false;
 
-    // Read as base64 to avoid UTF-8 alterations.
-    const b64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
-    const hash = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, b64);
+    // Read as Base64, decode to raw bytes, hash bytes → hex
+    const b64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    const bytes = base64ToBytes(b64); // Uint8Array
+    const hex = bytesToHex(sha256(bytes)).toLowerCase();
     const expected = spec.sha256.toLowerCase().trim();
-    return hash.toLowerCase() === expected;
+    return hex === expected;
   }
 
   static async deleteModel(modelId: ModelId): Promise<void> {
@@ -296,3 +300,34 @@ export class ModelManager {
 }
 
 export default ModelManager;
+
+/**
+ * Minimal Base64 → Uint8Array decoder (no atob/Buffer dependency).
+ * Accepts standard Base64 with '=' padding.
+ */
+function base64ToBytes(b64: string): Uint8Array {
+  const alphabet =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const table = new Uint8Array(256);
+  table.fill(255);
+  for (let i = 0; i < alphabet.length; i++) table[alphabet.charCodeAt(i)] = i;
+  // strip whitespace/newlines
+  b64 = b64.replace(/\s+/g, '');
+  // handle padding
+  const pad = (b64.endsWith('==') ? 2 : b64.endsWith('=') ? 1 : 0);
+  const len = b64.length;
+  const outLen = ((len / 4) * 3) - pad;
+  const out = new Uint8Array(outLen);
+  let o = 0;
+  for (let i = 0; i < len; i += 4) {
+    const c0 = table[b64.charCodeAt(i)];
+    const c1 = table[b64.charCodeAt(i + 1)];
+    const c2 = table[b64.charCodeAt(i + 2)];
+    const c3 = table[b64.charCodeAt(i + 3)];
+    const n = (c0 << 18) | (c1 << 12) | ((c2 & 63) << 6) | (c3 & 63);
+    if (o < outLen) out[o++] = (n >> 16) & 255;
+    if (o < outLen) out[o++] = (n >> 8) & 255;
+    if (o < outLen) out[o++] = n & 255;
+  }
+  return out;
+}
