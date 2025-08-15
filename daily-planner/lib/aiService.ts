@@ -1,5 +1,6 @@
 // lib/aiService.ts
 import { DailyEntry, Summary } from './database';
+import { formatDateRange } from '../utils/dateRange';
 
 interface SummaryRequest {
   type: 'weekly' | 'monthly' | 'yearly';
@@ -75,7 +76,7 @@ class AIService {
     
     if (totalEntries === 0) {
       return {
-        content: `Week of ${this.formatDateRange(startDate, endDate)}: No entries recorded this week.`,
+        content: `Week of ${formatDateRange(startDate, endDate)}: No entries recorded this week.`,
         insights: {
           key_themes: [],
           productivity_trend: 0,
@@ -129,7 +130,7 @@ class AIService {
   private generateMonthlySummary(weeklySummaries: Summary[], startDate: string, endDate: string): SummaryResponse {
     if (weeklySummaries.length === 0) {
       return {
-        content: `Month of ${this.formatDateRange(startDate, endDate)}: No weekly summaries available.`,
+        content: `Month of ${formatDateRange(startDate, endDate)}: No weekly summaries available.`,
         insights: {
           key_themes: [],
           productivity_trend: 0,
@@ -241,7 +242,7 @@ class AIService {
     learnings: string[],
     grateful: string[]
   ): string {
-    const dateRange = this.formatDateRange(startDate, endDate);
+    const dateRange = formatDateRange(startDate, endDate);
     const totalDays = entries.length;
     
     return `# Weekly Summary: ${dateRange}
@@ -380,27 +381,6 @@ ${this.generateYearlyReflection(avgProductivity, avgMood, avgEnergy, monthCount)
     return Object.entries(themeFreq)
       .sort(([,a], [,b]) => b - a)
       .map(([theme]) => theme);
-  }
-
-  private formatDateRange(startDate: string, endDate: string): string {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    const startYear = start.getFullYear();
-    const endYear = end.getFullYear();
-    const startMonth = start.getMonth();
-    const endMonth = end.getMonth();
-    
-    if (startYear === endYear && startMonth === endMonth) {
-      // Same month and year: "January 1 - 7, 2024"
-      return `${start.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - ${end.getDate()}, ${startYear}`;
-    } else if (startYear === endYear) {
-      // Same year, different months: "Jan 28 - Feb 3, 2024"
-      return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${startYear}`;
-    } else {
-      // Different years: "Dec 28, 2023 - Jan 3, 2024"
-      return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-    }
   }
 
   private generateWeeklyReflection(productivity: number, mood: number, energy: number, accomplishmentCount: number): string {

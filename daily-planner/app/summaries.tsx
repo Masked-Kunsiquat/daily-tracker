@@ -1,7 +1,5 @@
-// daily-planner/app/summaries.tsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { router } from 'expo-router';
 import { summaryService } from '@/lib/summaryService';
 import { Summary } from '@/lib/database';
 import { RefreshableScrollView, LoadingScreen, EmptyState } from '@/components/common';
@@ -9,8 +7,6 @@ import { SummaryCard } from '@/components/summaries/SummaryCard';
 import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
-
-type SummaryType = 'weekly' | 'monthly' | 'yearly';
 
 export default function SummariesScreen() {
   const [loading, setLoading] = useState(true);
@@ -55,13 +51,6 @@ export default function SummariesScreen() {
     };
   }, [loadData]);
 
-  const handlePressSummary = (type: SummaryType) => {
-    router.push({
-      pathname: '/summaries/[type]',
-      params: { type },
-    });
-  };
-
   const hasAnySummaries =
     weeklySummaries.length > 0 || monthlySummaries.length > 0 || yearlySummaries.length > 0;
 
@@ -85,19 +74,19 @@ export default function SummariesScreen() {
             title="Weekly Summaries"
             description="View your past week's insights."
             count={weeklySummaries.length}
-            onPress={() => handlePressSummary('weekly')}
+            summaryType="weekly"
           />
           <SummaryCard
             title="Monthly Summaries"
             description="View your past month's insights."
             count={monthlySummaries.length}
-            onPress={() => handlePressSummary('monthly')}
+            summaryType="monthly"
           />
           <SummaryCard
             title="Yearly Summaries"
             description="View your past year's insights."
             count={yearlySummaries.length}
-            onPress={() => handlePressSummary('yearly')}
+            summaryType="yearly"
           />
         </View>
       ) : (

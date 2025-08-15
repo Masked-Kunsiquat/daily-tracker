@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { Card, IconButton, Button, Badge, MarkdownRenderer } from '../common';
 import { Summary } from '@/lib/database';
+import { formatDateRange } from '@/utils/dateRange';
 import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
 import { Spacing } from '@/styles/spacing';
@@ -11,27 +12,6 @@ interface SummaryDetailCardProps {
   summary: Summary;
   onShare: () => void;
 }
-
-const formatDateRange = (startDate: string, endDate: string): string => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  
-  const startYear = start.getFullYear();
-  const endYear = end.getFullYear();
-  const startMonth = start.getMonth();
-  const endMonth = end.getMonth();
-  
-  if (startYear === endYear && startMonth === endMonth) {
-    // Same month and year: "January 1-7, 2024"
-    return `${start.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}-${end.getDate()}, ${startYear}`;
-  } else if (startYear === endYear) {
-    // Same year, different months: "Jan 28 - Feb 3, 2024"
-    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${startYear}`;
-  } else {
-    // Different years: "Dec 28, 2023 - Jan 3, 2024"
-    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-  }
-};
 
 export const SummaryDetailCard: React.FC<SummaryDetailCardProps> = ({
   summary,
