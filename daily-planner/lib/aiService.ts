@@ -1,6 +1,6 @@
 // lib/aiService.ts
 import { DailyEntry, Summary } from './database';
-import { formatDateRange } from '../utils/dateRange';
+import { formatDateRange } from '@/utils/dateHelpers';
 
 interface SummaryRequest {
   type: 'weekly' | 'monthly' | 'yearly';

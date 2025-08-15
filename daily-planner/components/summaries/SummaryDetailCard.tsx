@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { Card, IconButton, Button, Badge, MarkdownRenderer } from '../common';
 import { Summary } from '@/lib/database';
-import { formatDateRange } from '@/utils/dateRange';
+import { formatDateRange } from '@/utils/dateHelpers';
 import { getRatingColor } from '@/utils/ratingHelpers'; // Why: Reuse shared helper, avoid duplication
 import { Colors } from '@/styles/colors';
 import { Typography } from '@/styles/typography';
