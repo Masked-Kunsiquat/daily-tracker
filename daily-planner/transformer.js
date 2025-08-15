@@ -1,6 +1,5 @@
 // transformer.js - Custom Metro transformer for binary files
-const { getDefaultConfig } = require('expo/metro-config');
-const upstreamTransformer = require('@expo/metro-config/build/transformer');
+const upstreamTransformer = require('metro-react-native-babel-transformer');
 
 const binaryExtensions = ['onnx', 'ort', 'bin'];
 

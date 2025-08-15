@@ -10,10 +10,10 @@ config.resolver.assetExts.push(
   'bin',     // Binary model files
   'safetensors', // Hugging Face model format
   'msgpack'  // Tokenizer files
-);
+);//
 
 // Add support for loading binary files
-config.transformer.babelTransformerPath = require.resolve('./transformer.js');
+// config.transformer.babelTransformerPath = require.resolve('./transformer.js');
 
 // Increase Metro's memory limit for large model files
 config.maxWorkers = 2;
