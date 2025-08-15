@@ -103,14 +103,23 @@ export async function generatePendingWeeklySummaries(): Promise<void> {
 }
 
 /**
- * Normalize any date to the canonical weekly **start** used by generators.
+ * Normalize any date to the canonical weekly **start** (Monday, local time).
  *
- * Current policy:
- * - We already require callers to pass a Monday (local); thus this canonicalizes format only.
- *
- * @param date - Local ISO date (YYYY-MM-DD), expected to be a Monday.
- * @returns Canonicalized local ISO date (YYYY-MM-DD).
+ * - Parses the input as local YYYY-MM-DD.
+ * - Computes the Monday of that local week (Sun -> previous Mon; Mon stays Mon).
+ * - Returns the normalized date as YYYY-MM-DD.
+ * - Throws a clear error on invalid input.
  */
 export function normalizeWeeklyForceDate(date: string): string {
-  return formatDateISO(parseLocalISODate(date));
+  const d = parseLocalISODate(date);
+  if (Number.isNaN(d.getTime())) {
+    throw new Error(`normalizeWeeklyForceDate: invalid local ISO date "${date}"`);
+  }
+
+  // 0 = Sun, 1 = Mon, ... 6 = Sat
+  const dow = d.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow; // shift back to Monday
+  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() + mondayOffset);
+
+  return formatDateISO(monday);
 }
