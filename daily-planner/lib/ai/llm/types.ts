@@ -1,9 +1,14 @@
 // daily-planner/lib/ai/llm/types.ts
 export type SummaryType = 'weekly' | 'monthly' | 'yearly';
 
-export type ModelId = 'tiny-sum-onnx' | 'base-sum-onnx' | 'pro-sum-onnx';
+export type ModelId =
+  | 'tiny-sum-onnx'
+  | 'base-sum-onnx'
+  | 'pro-sum-onnx'
+  | 'distilbart-cnn-6-6-q8'
+  | 't5-small-q8';
 
-export interface ModelSpec {
+  export interface ModelSpec {
   id: ModelId;
   displayName: string;
   sourceURL: string;
@@ -12,8 +17,8 @@ export interface ModelSpec {
   maxInputTokens: number;
   maxOutputTokens: number;
   quantization?: 'int4' | 'int8' | 'fp16' | 'fp32';
-  tokenizer?: 'gpt2-bpe' | 'llama-bpe' | 'custom';
-}
+  tokenizer?: 'gpt2-bpe' | 'llama-bpe' | 'roberta-bpe' | 't5-spm' | 'custom';
+  }
 
 export interface DeviceProfile {
   os: 'ios' | 'android' | 'windows' | 'macos' | 'web';
