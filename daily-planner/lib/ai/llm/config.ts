@@ -18,6 +18,30 @@ export const JSON_INSTRUCTIONS = `You are to output ONLY valid JSON that matches
 
 /* Replace URLs + hashes with your artifacts. Use https with range support for resumable downloads. */
 export const MODEL_REGISTRY: Record<ModelId, ModelSpec> = {
+  /* --- Phase 3.0: new placeholders (no behavior change; URLs/hashes REQUIRED) --- */
+  'distilbart-cnn-6-6-q8': {
+    id: 'distilbart-cnn-6-6-q8',
+    displayName: 'DistilBART-CNN 6-6 (INT8)',
+    sourceURL: 'REQUIRED',         // REQUIRED: CDN https URL to .onnx (supports range)
+    sha256: 'REQUIRED',            // REQUIRED: SHA-256 of the ONNX file
+    sizeMB: 150,
+    maxInputTokens: 1024,
+    maxOutputTokens: 256,
+    quantization: 'int8',
+    tokenizer: 'roberta-bpe',      // DistilBART/BART family uses Roberta/BPE
+  },
+  't5-small-q8': {
+    id: 't5-small-q8',
+    displayName: 'T5-small (INT8)',
+    sourceURL: 'REQUIRED',         // REQUIRED: CDN https URL to .onnx (supports range)
+    sha256: 'REQUIRED',            // REQUIRED: SHA-256 of the ONNX file
+    sizeMB: 120,
+    maxInputTokens: 512,
+    maxOutputTokens: 256,
+    quantization: 'int8',
+    tokenizer: 't5-spm',           // T5 uses SentencePiece
+  },
+
   'tiny-sum-onnx': {
     id: 'tiny-sum-onnx',
     displayName: 'Tiny Summarizer (ONNX int8)',
